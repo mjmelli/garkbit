@@ -1,0 +1,19 @@
+{
+  "name": "garkbit",
+  "version": "1.0.0",
+  "description": "a node.js photo gallery",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mjmelli/garkbit.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mjmelli/garkbit/issues"
+  },
+  "homepage": "https://github.com/mjmelli/garkbit#readme"
+}
