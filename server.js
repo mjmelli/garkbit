@@ -11,18 +11,19 @@ import { ExifImage } from 'exif';
 
 import React from 'react';
 import { Provider } from 'react-redux';
-import { renderToString } from 'react-dom/server'
-import { RoutingContext, match } from 'react-router';
-import createLocation from 'history/lib/createLocation';
+import { renderToString } from 'react-dom/server';
+import { RouterContext, match } from 'react-router';
 import Routes from './app/routes';
 import configureStore from './app/store';
+
+import { StyleSheetServer } from 'aphrodite';
 
 const app = Express();
 
 const photoFolder = 'public/images/photos/';
 
 app.use(Express.static('public'));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 app.set('views', './views'); 
 
 const urlEncodedParser = BodyParser.urlencoded({ extended: false });
@@ -246,11 +247,13 @@ function fetchInitialState (renderProps, callback) {
             if (_.isUndefined(renderProps.params.galleryId)) {
                 return cb();
             }
+            data.photos = {};
             DB.connect(function (err, db) {
                 if (err) return cb(err);
                 db.collection('photos').find({'galleries.id': DB.objectId(renderProps.params.galleryId)}).toArray(function (err, photos) {
                     if (err) return cb(err);
-                    data.photos = DB.toResponse(photos);
+                    data.photos.photos = DB.toResponse(photos);
+                    data.photos.gallery = { id: renderProps.params.galleryId, name: '' };
                     return cb();
                 });
             });
@@ -264,8 +267,7 @@ function fetchInitialState (renderProps, callback) {
 }
 
 app.use((req, res) => {
-    const location = createLocation(req.url);
-    match({routes: Routes, location: location}, (err, redirectLocation, renderProps) => {
+    match({routes: Routes, location: req.url}, (err, redirectLocation, renderProps) => {
         if (err) {
             console.error(err);
             return res.status(500).end('Internal server error');
@@ -278,11 +280,14 @@ app.use((req, res) => {
             
             const store = configureStore(state);
 
-            const content = renderToString(<Provider store={store}><RoutingContext {...renderProps} /></Provider>);
+            //const content = renderToString(<Provider store={store}><RouterContext {...renderProps} /></Provider>);
+            const {content, css} = StyleSheetServer.renderStatic(() => {
+                return renderToString(<Provider store={store}><RouterContext {...renderProps} /></Provider>);
+            });
             
             const initialState = store.getState();
             
-            res.render('index', { content: content, initialState: initialState });           
+            res.render('index', { content: content, css: css, initialState: initialState });           
         });     
 
     });

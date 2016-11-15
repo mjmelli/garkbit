@@ -107,6 +107,17 @@ class Photos extends React.Component {
         this.handlePhotoDelete = this.handlePhotoDelete.bind(this);
     }
     
+    componentWillMount() {
+        this.props.actions.loadGallery(nextProps.galleryId);
+    }
+    
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.galleryId !== this.props.galleryId) {
+            this.props.actions.loadGallery(nextProps.galleryId);
+            this.props.actions.loadPhotos(nextProps.galleryId);
+        }
+    }    
+    
     handlePhotoSubmit (file, galleryId) {    
         this.props.actions.addPhoto(file, galleryId);
     }
@@ -122,9 +133,9 @@ class Photos extends React.Component {
     render () {
         return (
             <div id="photos-panel">
-                <h1>Gallery: {this.props.galleryId}</h1>
+                <h1>Gallery: {this.props.photos.gallery.name}</h1>
                 <PhotoForm galleryId={this.props.galleryId} onPhotoSubmit={this.handlePhotoSubmit} />  
-                <PhotoList galleryId={this.props.galleryId} data={this.props.photos} onPhotoUpdate={this.handlePhotoUpdate} onPhotoDelete={this.handlePhotoDelete} />
+                <PhotoList galleryId={this.props.galleryId} data={this.props.photos.photos} onPhotoUpdate={this.handlePhotoUpdate} onPhotoDelete={this.handlePhotoDelete} />
             </div>
         );
     }

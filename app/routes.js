@@ -6,7 +6,7 @@ import Photos from './components/photos/photoscontainer';
 
 export default (
     <Route name="app" component={App} path="/">
-        <IndexRoute component={Galleries}/>
+        <IndexRoute components={{sidebar: Galleries}}/>
         <Route path="/gallery/:galleryId" components={{sidebar: Galleries, content: Photos}}/>
-    </Route>   
+    </Route>
 );

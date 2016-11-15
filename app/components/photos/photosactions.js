@@ -1,5 +1,29 @@
 import fetch from 'isomorphic-fetch';
 
+export function loadPhotos(galleryId) {
+    return dispatch => {
+        return fetch('/api/galleries/' + galleryId + '/photos')
+        .then(response => response.json())
+        .then(json => dispatch(didLoadPhotos(json.photos)))
+    }
+}
+
+function didLoadPhotos(photos) {
+    return { type: 'LOAD_PHOTOS', photos };
+}
+
+export function loadGallery(galleryId) {
+    return dispatch => {
+        return fetch('/api/galleries/' + galleryId)
+        .then(response => response.json())
+        .then(json => dispatch(didLoadGallery(json.gallery)))
+    }
+}
+
+function didLoadGallery(id, name) {
+    return { type: 'LOAD_GALLERY', gallery };
+}
+
 export function addPhoto(file, galleryId) {
     return dispatch => {
         

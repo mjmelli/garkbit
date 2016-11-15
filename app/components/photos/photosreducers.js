@@ -1,23 +1,26 @@
 import _ from 'lodash';
 
-function photos(state = [], action) {
+function photos(state = { gallery: {}, photos: [] }, action) {
+    let newState = {};
     switch (action.type) {
+        case 'LOAD_GALLERY':
+            newState = {...state};
+            newState.gallery = { id: action.gallery.id, name: action.gallery.name };
+            return newState;
+        case 'LOAD_PHOTOS':
+            newState = {...state};
+            newState.photos = action.photos;
+            return newState;
         case 'ADD_PHOTO':
-            return [
-                ...state,
-                action.photo
-            ];
-        case 'UPDATE_PHOTO':
-            let gallery = { id: action.id, name: action.name };
-            var index = _.findIndex(state, {id: action.id});
-            var newState = [...state];
-            newState.splice(index, 1, gallery);
+            newState = {...state};
+            newState.photos = [ ...state.photos, action.photo ];
             return newState;
-        case 'DELETE_PHOTO':
-            var index = _.findIndex(state, {id: action.id});
-            var newState = [...state];
-            _.pullAt(newState, index);
-            return newState;
+        case 'UPDATE_PHOTO': {
+
+        }
+        case 'DELETE_PHOTO': {
+
+        }
         default:
             return state;
     }
