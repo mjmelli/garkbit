@@ -1,8 +1,10 @@
 import { combineReducers } from 'redux';
-import galleries from './components/galleries/galleriesreducers';
-import photos from './components/photos/photosreducers';
+import gallery from './components/GalleryView/galleryviewreducers';
+import galleries from './components/GalleriesPanel/galleriespanelreducers';
+import photos from './components/PhotoGrid/photogridreducers';
 
 const rootReducer = combineReducers({
+    gallery,
     galleries,
     photos
 });

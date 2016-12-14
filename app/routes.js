@@ -1,12 +1,12 @@
 import React from 'react';
 import { Route, IndexRoute } from 'react-router';
 import App from './components/index';
-import Galleries from './components/galleries/galleriescontainer';
-import Photos from './components/photos/photoscontainer';
+import GalleriesPanel from './components/GalleriesPanel/galleriespanelcontainer';
+import GalleryView from './components/GalleryView/galleryviewcontainer';
 
 export default (
     <Route name="app" component={App} path="/">
-        <IndexRoute components={{sidebar: Galleries}}/>
-        <Route path="/gallery/:galleryId" components={{sidebar: Galleries, content: Photos}}/>
+        <IndexRoute components={{sidebar: GalleriesPanel}}/>
+        <Route path="/gallery/:galleryId" components={{sidebar: GalleriesPanel, content: GalleryView}}/>
     </Route>
 );
