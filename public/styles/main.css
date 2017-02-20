@@ -11,3 +11,17 @@ html, body {
 .gallery {
     padding-bottom: 10px;
 }
+.gb-inline-gallery {
+    display: block;
+    clear: both;
+    width: 100%;
+}
+.gb-thumbnail-wrapper {
+    float: left;
+    border: 1px solid black;
+    margin: 5px;
+}
+.gb-thumbnail-wrapper img {
+    display: block;
+    margin: 0;
+}

@@ -1,11 +1,14 @@
 import Config from '../../../config';
 import Fetch from 'isomorphic-fetch';
+import _ from 'lodash';
 
-export const addPhoto = (file, galleryId) => {
+export const addPhoto = (files, galleryId) => {
     return dispatch => {
 
         let formData = new FormData();
-        formData.append('photo', file);
+        _.each(files, (f) => {
+            formData.append('photo', f);
+        });
         formData.append('galleryId', galleryId);
 
         return Fetch(Config.API_URL + '/photos', {
@@ -13,7 +16,7 @@ export const addPhoto = (file, galleryId) => {
             body: formData,
         })
         .then(response => response.json())
-        .then(json => dispatch(didAddPhoto(json.photo)))
+        .then(json => dispatch(didAddPhoto(json.photos)))
         .catch(function(e) {
             console.log('--Add Photo--');
             console.log(e);
@@ -21,4 +24,4 @@ export const addPhoto = (file, galleryId) => {
     }
 }
 
-const didAddPhoto = (photo) => ({ type: 'ADD_PHOTO', photo });
+const didAddPhoto = (photos) => ({ type: 'ADD_PHOTO', photos });

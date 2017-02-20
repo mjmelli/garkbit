@@ -1,7 +1,9 @@
 import React from 'react';
 import { StyleSheet, css } from 'aphrodite';
+import { DragDropContext } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
 
-export default class AppView extends React.Component {
+class AppView extends React.Component {
     render () {
         const { content, sidebar } = this.props;
         return (
@@ -16,13 +18,14 @@ export default class AppView extends React.Component {
         );
     }
 }
+export default DragDropContext(HTML5Backend)(AppView);
 
 const styles = StyleSheet.create({
     sidebar: {
         float: 'left',
         width: '20%',
     },
-    
+
     content: {
         float: 'left',
         width: '80%',

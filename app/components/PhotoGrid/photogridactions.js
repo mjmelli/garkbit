@@ -56,9 +56,19 @@ function didDeletePhoto(id) {
   return { type: 'DELETE_PHOTO', id }
 }
 
-export function sortPhoto(id, targetId) {
+export function sortPhoto(galleryId, photoId, targetId, direction) {
     return dispatch => {
-        return dispatch(didSortPhoto(id, targetId));
+        return Fetch(Config.API_URL + '/galleries/' + galleryId + '/photo/' + photoId + '/sort', {
+            method: 'PUT',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
+            body: 'targetId=' + targetId + '&direction=' + direction,
+        })
+        .then(response => response.json())
+        .then(json => dispatch(didSortPhoto(photoId, targetId)))
+        .catch(function(e) {
+            console.log('--Sort Photo--');
+            console.log(e);
+        })
     }
 }
 
@@ -66,8 +76,14 @@ function didSortPhoto(id, targetId) {
     return { type: 'SORT_PHOTO', id, targetId }
 }
 
-export function addSortPlaceholder(targetId) {
+export function movePhoto(dragIndex, hoverIndex) {
     return dispatch => {
-        return dispatch( { 'type': 'SORT_PLACEHOLDER', targetId } );
+        return dispatch({ type: 'MOVE_PHOTO', dragIndex, hoverIndex });
+    }
+}
+
+export function togglePhotoSelect(id) {
+    return dispatch => {
+        return dispatch({ type: 'TOGGLE_PHOTO_SELECT', id });
     }
 }

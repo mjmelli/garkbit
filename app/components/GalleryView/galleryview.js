@@ -1,5 +1,8 @@
 import React from 'react';
 import PhotoGridContainer from '../PhotoGrid/photogridcontainer';
+import AddPhoto from '../AddPhoto/addPhoto';
+import { connect } from 'react-redux';
+import { updateGallery, deleteGallery } from './galleryviewactions';
 
 class GalleryHeader extends React.Component {
     constructor (props) {
@@ -10,25 +13,25 @@ class GalleryHeader extends React.Component {
         this.handleUpdate = this.handleUpdate.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
     }
-    
+
     startEdit () {
         this.setState({'name': this.props.gallery.name, 'isEditing': true});
     }
-    
+
     handleChange (e) {
         this.setState({'name': e.target.value});
     }
-    
+
     handleUpdate (e) {
         e.preventDefault();
-        this.props.onGalleryUpdate(this.props.gallery.id, this.state.name);
+        this.props.updateGallery(this.props.gallery.id, this.state.name, this.props.gallery.parentId);
         this.setState({'isEditing': false});
     }
-    
+
     handleDelete (e) {
-        this.props.onGalleryDelete(this.props.gallery.id);
+        this.props.deleteGallery(this.props.gallery.id, this.props.gallery.parentId);
     }
-    
+
     render () {
         if (this.state.isEditing) {
             return (
@@ -37,38 +40,38 @@ class GalleryHeader extends React.Component {
                     <input type="submit" value="Change" onClick={this.handleUpdate} />
                 </div>
             );
-        } else { 
+        } else {
             return (
                 <div className="gallery">
                     <span onClick={this.startEdit}>{this.props.gallery.name}</span>
                     <a className="galleryDelete" onClick={this.handleDelete}>x</a>
-                </div>        
+                </div>
             );
         }
     }
 }
+GalleryHeader = connect(
+    (state, ownProps) => ownProps,
+    {updateGallery, deleteGallery}
+)(GalleryHeader);
 
 class GalleryView extends React.Component {
     constructor (props, context) {
         super(props, context);
-        this.handleGalleryUpdate = this.handleGalleryUpdate.bind(this);
         this.props.actions.loadGallery(props.params.galleryId);
     }
-    
+
     componentWillReceiveProps(nextProps) {
         if (nextProps.params.galleryId !== this.props.params.galleryId) {
             this.props.actions.loadGallery(nextProps.params.galleryId);
         }
-    }    
-    
-    handleGalleryUpdate (id, name) {
-        this.props.actions.updateGallery(id, name);
-    }    
-    
+    }
+
     render () {
         return (
             <div id="gallery-view">
-                <GalleryHeader gallery={this.props.gallery} onGalleryUpdate={this.handleGalleryUpdate} />
+                <GalleryHeader gallery={this.props.gallery} />
+                <AddPhoto galleryId={this.props.gallery.id} />
                 <PhotoGridContainer />
             </div>
         );

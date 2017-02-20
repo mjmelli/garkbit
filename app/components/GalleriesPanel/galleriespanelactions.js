@@ -1,12 +1,19 @@
+import _ from 'lodash';
 import Config from '../../../config';
 import Fetch from 'isomorphic-fetch';
 
-export const addGallery = (name) => {
+export function toggleAddGalleryModal() {
+    return dispatch => {
+        return dispatch({ type: 'TOGGLE_ADDGALLERY_MODAL' });
+    }
+}
+
+export const addGallery = (name, parentId) => {
     return ( dispatch ) => {
         return Fetch(Config.API_URL + '/galleries', {
             method: 'POST',
             headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
-            body: 'name=' + name,
+            body: 'name=' + name + '&parentId=' + parentId,
         })
         .then(response => response.json())
         .then(json => dispatch(didAddGallery(json.gallery)))
@@ -21,7 +28,7 @@ function didAddGallery(gallery) {
     return { type: 'ADD_GALLERY', gallery }
 }
 
-export function updateGallery(id, name) {
+export function updateGallery(id, name, parentId) {
     return ( dispatch ) => {
         return Fetch(Config.API_URL + '/galleries/' + id, {
             method: 'POST',
@@ -29,7 +36,7 @@ export function updateGallery(id, name) {
             body: 'name=' + name,
         })
         .then(response => response.json())
-        .then(json => dispatch(didUpdateGallery(json.gallery.id, json.gallery.name)))
+        .then(json => dispatch(didUpdateGallery(id, name, parentId)))
         .catch(function(e) {
             console.log('--Update Gallery--');
             console.log(e);
@@ -37,18 +44,18 @@ export function updateGallery(id, name) {
     }
 }
 
-function didUpdateGallery(id, name) {
-  return { type: 'UPDATE_GALLERY', id, name }
+function didUpdateGallery(id, name, parentId) {
+  return { type: 'UPDATE_GALLERY', id, name, parentId }
 }
 
-export function deleteGallery(id) {
+export function deleteGallery(id, parentId) {
     return ( dispatch ) => {
         return Fetch(Config.API_URL + '/galleries/' + id, {
             method: 'DELETE',
             headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
         })
         .then(response => response.json())
-        .then(json => dispatch(didDeleteGallery(id)))
+        .then(json => dispatch(didDeleteGallery(id, parentId)))
         .catch(function(e) {
             console.log('--Delete Gallery--');
             console.log(e);
@@ -56,6 +63,35 @@ export function deleteGallery(id) {
     }
 }
 
-function didDeleteGallery(id) {
-  return { type: 'DELETE_GALLERY', id }
+function didDeleteGallery(id, parentId) {
+    return { type: 'DELETE_GALLERY', id, parentId }
+}
+
+/*
+    Note: in this function, it's important to remove the photo from the old gallery
+    before adding to the new gallery in order to preserve parent/child consistency
+*/
+export function addPhotoToGallery(photoId, galleryId) {
+    return ( dispatch ) => {
+        return Fetch(Config.API_URL + '/galleries/' + galleryId + '/photo/' + photoId, {
+            method: 'PUT',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
+        })
+        .then(response => response.json())
+        .then(json => {
+            return dispatch(didAddPhotoToGallery(photoId, galleryId))
+        })
+        .catch(function(e) {
+            console.log('--Add Photo to Gallery--');
+            console.log(e);
+        })
+    }
+}
+
+function didAddPhotoToGallery(photoId, galleryId) {
+    return { type: 'ADD_PHOTO_TO_GALLERY', photoId, galleryId }
+}
+
+function didNotMovePhotoToGallery() {
+    return { type: 'DID_NOT_ADD_PHOTO_TO_GALLERY' }
 }

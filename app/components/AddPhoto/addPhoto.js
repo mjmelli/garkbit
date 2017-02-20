@@ -1,7 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { addPhoto } from './addPhotoActions';
-import _ from 'lodash';
 import { canUseDOM } from '../../../lib/utils.js';
 
 class AddPhoto extends React.Component {
@@ -38,9 +37,7 @@ class AddPhoto extends React.Component {
 
         const dt = e.dataTransfer;
         const files = dt.files;
-        _.each(files, (f) => {
-            this.props.addPhoto(f, this.props.galleryId);
-        });
+        this.props.addPhoto(files, this.props.galleryId);
     }
 
     render () {
@@ -49,7 +46,7 @@ class AddPhoto extends React.Component {
                 <input type="file" onChange={this.handleChange} placeholder="Photo" ref="photoInput" />
                 <input type="submit" value="Add Photo" />
                 <img src={this.state.file} ref="previewImage" width="100"/>
-                <div style={{width: '300px', height: '100px', border: '2px dashed black'}} ref="photoDrop" onDragOver={(e) => e.preventDefault()} onDrop={this.handleDrop}></div>
+                <div style={{width: '300px', height: '100px', border: '2px dashed black'}} ref="photoDrop" onDragOver={(e) => {e.stopPropagation(); e.preventDefault();}} onDrop={this.handleDrop}></div>
             </form>
         );
     }

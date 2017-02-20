@@ -1,5 +1,6 @@
 import Config from '../../../config';
 import Fetch from 'isomorphic-fetch';
+import { browserHistory } from 'react-router';
 
 export function loadGallery(galleryId) {
     return dispatch => {
@@ -17,7 +18,7 @@ function didLoadGallery(gallery) {
     return { type: 'LOAD_GALLERY', gallery };
 }
 
-export function updateGallery(id, name) {
+export function updateGallery(id, name, parentId) {
     return dispatch => {
         return Fetch(Config.API_URL + '/galleries/' + id, {
             method: 'POST',
@@ -25,7 +26,7 @@ export function updateGallery(id, name) {
             body: 'name=' + name,
         })
         .then(response => response.json())
-        .then(json => dispatch(didUpdateGallery(json.gallery.id, json.gallery.name)))
+        .then(json => dispatch(didUpdateGallery(id, name, parentId)))
         .catch(function(e) {
             console.log('--Update Gallery--');
             console.log(e);
@@ -33,6 +34,28 @@ export function updateGallery(id, name) {
     }
 }
 
-function didUpdateGallery(id, name) {
-  return { type: 'UPDATE_GALLERY', id, name }
+function didUpdateGallery(id, name, parentId) {
+  return { type: 'UPDATE_GALLERY', id, name, parentId }
+}
+
+export function deleteGallery(id, parentId) {
+    return ( dispatch ) => {
+        return Fetch(Config.API_URL + '/galleries/' + id, {
+            method: 'DELETE',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
+        })
+        .then(response => response.json())
+        .then(json => dispatch(didDeleteGallery(id, parentId)))
+        .then(() => {
+            browserHistory.push('/');
+        })
+        .catch(function(e) {
+            console.log('--Delete Gallery--');
+            console.log(e);
+        })
+    }
+}
+
+function didDeleteGallery(id, parentId) {
+  return { type: 'DELETE_GALLERY', id, parentId }
 }

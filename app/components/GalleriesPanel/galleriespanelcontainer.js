@@ -6,6 +6,7 @@ import GalleriesPanel from './galleriespanel';
 
 function mapStateToProps (state) {
     return {
+        galleryPanel: state.galleryPanel,
         galleries: state.galleries
     }
 }

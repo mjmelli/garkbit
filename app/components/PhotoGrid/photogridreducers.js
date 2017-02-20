@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import update from 'immutability-helper';
 
 function photos(state = [], action) {
     let newState = [];
@@ -8,7 +9,7 @@ function photos(state = [], action) {
             newState = action.photos;
             return newState;
         case 'ADD_PHOTO':
-            newState = [ ...state, action.photo ];
+            newState = [ ...state, ...action.photos ];
             return newState;
         case 'UPDATE_PHOTO': {
 
@@ -20,24 +21,27 @@ function photos(state = [], action) {
             return newState;
         }
         case 'SORT_PHOTO': {
+            return state;
+        }
+        case 'MOVE_PHOTO': {
             newState = [...state];
-            if (action.id === action.targetId) return newState;
-            let itemToMove = _.find(newState, {id: action.id});
-            _.pull(newState, itemToMove);
-            let targetIndex = _.findIndex(newState, {id: action.targetId});
-            newState.splice(targetIndex, 0, itemToMove);
+            const itemToMove = newState[action.dragIndex];
+            _.pullAt(newState, action.dragIndex);
+            newState.splice(action.hoverIndex, 0, itemToMove);
             return newState;
         }
-        case 'SORT_PLACEHOLDER': {
-            newState = [...state];
-            const placeholder = {id: 'placeholder'};
-            let itemToPull = _.find(newState, {id: 'placeholder'});
-            _.pull(newState, itemToPull);
-            let targetIndex = _.findIndex(newState, {id: action.targetId});
-            newState.splice(targetIndex, 0, placeholder);
+        case 'TOGGLE_PHOTO_SELECT': {
+            index = _.findIndex(state, {id: action.id});
+            if (state[index].isSelected) {
+                newState = update(state, {[index]: {isSelected: {$set: false}}});
+            } else {
+                newState = update(state, {[index]: {isSelected: {$set: true}}});
+            }
             return newState;
         }
-
+        case 'MOVE_PHOTO_TO_GALLERY': {
+            return state;
+        }
         default:
             return state;
     }
