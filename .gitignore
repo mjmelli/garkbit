@@ -28,3 +28,4 @@ node_modules
 
 # Data directory
 public/images/photos
+public/images/uploads
