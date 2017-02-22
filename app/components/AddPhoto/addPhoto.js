@@ -32,7 +32,6 @@ class AddPhoto extends React.Component {
     }
 
     handleDrop = (e) => {
-        e.stopPropagation();
         e.preventDefault();
 
         const dt = e.dataTransfer;

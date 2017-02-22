@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-function gallery(state = {id: '', name: '', parentId: ''}, action) {
+function gallery(state = {id: '', name: '', parentId: '', sortBy: ''}, action) {
     let newState = {};
     switch (action.type) {
         case 'LOAD_GALLERY':
@@ -8,11 +8,16 @@ function gallery(state = {id: '', name: '', parentId: ''}, action) {
             return newState;
         case 'UPDATE_GALLERY':
             if (state.id === action.id) {
-              newState = { id: action.id, name: action.name, parentId: action.parentId };
-              return newState;
+                newState = {...state};
+                newState.name = action.name;
+                return newState;
             } else {
-              return state;
+                return state;
             }
+        case 'UPDATE_GALLERY_SORT':
+            newState = {...state};
+            newState.sortBy = action.sort;
+            return newState;
         case 'DELETE_GALLERY':
             if (state.id === action.id) {
                 return {};

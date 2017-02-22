@@ -2,33 +2,61 @@ import React from 'react';
 import PhotoGridContainer from '../PhotoGrid/photogridcontainer';
 import AddPhoto from '../AddPhoto/addPhoto';
 import { connect } from 'react-redux';
-import { updateGallery, deleteGallery } from './galleryviewactions';
+import { updateGallery, deleteGallery, updateGallerySort } from './galleryviewactions';
+
+class GallerySortSelector extends React.Component {
+    constructor (props) {
+        super(props);
+    }
+
+    handleChange = (e) => {
+        e.preventDefault();
+        this.props.updateGallerySort(this.props.gallery.id, this.refs.gallerySortSelector.value);
+        return false;
+    }
+
+    render () {
+        const props = this.props;
+
+        return (
+            <form>
+                <select value={props.gallery.sortBy} ref="gallerySortSelector" onChange={this.handleChange}>
+                    <option value="date">Photo Date</option>
+                    <option value="filename">Filename</option>
+                    {!props.gallery.isSet && 
+                        <option value="pos">Custom</option>
+                    }
+                </select>
+            </form>
+        )
+    }
+}
+GallerySortSelector = connect(
+    (state, ownProps) => ownProps,
+    {updateGallerySort}
+)(GallerySortSelector);
 
 class GalleryHeader extends React.Component {
     constructor (props) {
         super(props);
         this.state = { isEditing: false };
-        this.startEdit = this.startEdit.bind(this);
-        this.handleChange = this.handleChange.bind(this);
-        this.handleUpdate = this.handleUpdate.bind(this);
-        this.handleDelete = this.handleDelete.bind(this);
     }
 
-    startEdit () {
+    startEdit = () => {
         this.setState({'name': this.props.gallery.name, 'isEditing': true});
     }
 
-    handleChange (e) {
+    handleChange = (e) => {
         this.setState({'name': e.target.value});
     }
 
-    handleUpdate (e) {
+    handleUpdate = (e) => {
         e.preventDefault();
         this.props.updateGallery(this.props.gallery.id, this.state.name, this.props.gallery.parentId);
         this.setState({'isEditing': false});
     }
 
-    handleDelete (e) {
+    handleDelete = (e) => {
         this.props.deleteGallery(this.props.gallery.id, this.props.gallery.parentId);
     }
 
@@ -68,10 +96,15 @@ class GalleryView extends React.Component {
     }
 
     render () {
+        const props = this.props;
+
         return (
             <div id="gallery-view">
-                <GalleryHeader gallery={this.props.gallery} />
-                <AddPhoto galleryId={this.props.gallery.id} />
+                <GalleryHeader gallery={props.gallery} />
+                <GallerySortSelector gallery={props.gallery} />
+                {!props.gallery.isSet &&
+                    <AddPhoto galleryId={props.gallery.id} />
+                }
                 <PhotoGridContainer />
             </div>
         );

@@ -21,6 +21,12 @@ function collectPhotoTarget(connect, monitor) {
 }
 
 const photoTarget = {
+    canDrop(props, monitor) {
+        if (props.gallery.isSet) {
+            return false;
+        }
+        return true;
+    },
     drop(props, monitor, component) {
         if (!monitor.didDrop()) {
             props.addPhotoToGallery(monitor.getItem().photoId, props.gallery.id);
@@ -138,33 +144,41 @@ class GalleryForm extends React.Component {
         e.preventDefault();
         let name = this.refs.galleryNameInput.value.trim();
         let parentGallery = this.refs.parentGallerySelect.value;
+        let isSet = this.refs.isSet.value;
         if (!name) {
             return;
         }
         this.refs.galleryNameInput.value = '';
         this.refs.parentGallerySelect.value = '';
-        this.props.addGallery(name, parentGallery);
+        this.props.addGallery(name, parentGallery, isSet);
     }
 
     render () {
-        let parentGalleryOptions = this.props.galleries.map(function(gallery) {
-            return (
-                <option value={gallery.id} key={gallery.id}>{gallery.name}</option>
-            );
-        });
+        const props = this.props;
+        let title = 'Add Gallery';
+        if (props.addSet) {
+            title = 'Add Gallery Set';
+        }
+        const parentGalleryOptions = props.galleries.filter(g => g.isSet)
+            .map(function(gallery) {
+                return (
+                    <option value={gallery.id} key={gallery.id}>{gallery.name}</option>
+                );
+            });
         return (
-            <Modal show={this.props.show} onHide={this.props.toggleAddGalleryModal}>
+            <Modal show={props.show} onHide={props.toggleAddGalleryModal}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Add New Gallery</Modal.Title>
+                    <Modal.Title>{title}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <form className="gallery-form" onSubmit={this.handleSubmit}>
                         <input type="text" placeholder="Gallery Name" ref="galleryNameInput" /><br />
-                        As sub-gallery of:
+                        Add to gallery set:
                         <select name="parentGallery" ref="parentGallerySelect">
                             <option value="">--</option>
                             {parentGalleryOptions}
                         </select><br />
+                        <input type="hidden" name="isSet" ref="isSet" value={props.addSet}/>
                         <input type="submit" value="Add Gallery" />
                     </form>
                 </Modal.Body>
@@ -182,12 +196,22 @@ class GalleriesPanel extends React.Component {
         super(props);
     }
 
+    handleButtonClick = (e) => {
+        e.stopPropagation();
+        let addSet = false;
+        if (e.target.id === 'addGallerySetButton') {
+            addSet = true;
+        }
+        return this.props.actions.toggleAddGalleryModal(addSet);
+    }
+
     render () {
         return (
             <div id="gallery-panel">
                 <h1>Galleries</h1>
-                <Button bsStyle="primary" bsSize="small" onClick={this.props.actions.toggleAddGalleryModal}>Add Gallery</Button>
-                <GalleryForm show={this.props.galleryPanel.showAddGalleryModal} galleries={this.props.galleries} />
+                <Button bsStyle="primary" bsSize="small" onClick={this.handleButtonClick} id="addGallerySetButton">Add Gallery Set</Button>
+                <Button bsStyle="primary" bsSize="small" onClick={this.handleButtonClick} id="addGalleryButton">Add Gallery</Button>
+                <GalleryForm show={this.props.galleryPanel.showAddGalleryModal} galleries={this.props.galleries} addSet={this.props.galleryPanel.addSet}/>
                 <GalleryList data={this.props.galleries} />
             </div>
         );

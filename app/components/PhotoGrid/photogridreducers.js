@@ -1,7 +1,23 @@
 import _ from 'lodash';
 import update from 'immutability-helper';
 
-function photos(state = [], action) {
+export function photoGrid(state = {'showCannotSortDialog': false}, action) {
+    let newState = {};
+    switch (action.type) {
+        case 'TOGGLE_CANNOT_SORT_DIALOG':
+            newState = {...state};
+            if (state.showCannotSortDialog) {
+                newState.showCannotSortDialog = false;
+            } else {
+                newState.showCannotSortDialog = true;
+            }
+            return newState;
+        default:
+            return state;
+    }
+}
+
+export function photos(state = [], action) {
     let newState = [];
     let index = 0;
     switch (action.type) {
@@ -46,5 +62,3 @@ function photos(state = [], action) {
             return state;
     }
 }
-
-export default photos;

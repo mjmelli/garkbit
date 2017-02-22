@@ -2,18 +2,18 @@ import _ from 'lodash';
 import Config from '../../../config';
 import Fetch from 'isomorphic-fetch';
 
-export function toggleAddGalleryModal() {
+export const toggleAddGalleryModal = (addSet) => {
     return dispatch => {
-        return dispatch({ type: 'TOGGLE_ADDGALLERY_MODAL' });
+        return dispatch({ type: 'TOGGLE_ADDGALLERY_MODAL', addSet });
     }
 }
 
-export const addGallery = (name, parentId) => {
+export const addGallery = (name, parentId, isSet) => {
     return ( dispatch ) => {
         return Fetch(Config.API_URL + '/galleries', {
             method: 'POST',
             headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
-            body: 'name=' + name + '&parentId=' + parentId,
+            body: 'name=' + name + '&parentId=' + parentId + '&isSet=' + isSet,
         })
         .then(response => response.json())
         .then(json => dispatch(didAddGallery(json.gallery)))

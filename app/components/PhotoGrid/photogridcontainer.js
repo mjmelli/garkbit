@@ -6,8 +6,9 @@ import PhotoGrid from './photogrid';
 
 const mapStateToProps = (state) => {
     return {
-        galleryId: state.gallery.id,
-        photos: state.photos
+        photoGrid: state.photoGrid,
+        gallery: state.gallery,
+        photos: state.photos,
     }
 }
 

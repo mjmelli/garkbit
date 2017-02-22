@@ -197,21 +197,23 @@ app.post('/api/galleries', urlEncodedParser, function(req, res) {
 
     const name = req.body.name;
     const parentId = req.body.parentId ? req.body.parentId : null;
+    const isSet = req.body.isSet ? (req.body.isSet == 'true') : false;
 
     DB.connect(function (err, db) {
-        if (err) return res.json({'err': err});
+        if (err) return res.json({ 'err': err });
         db.collection('galleries').insertOne({
             name: name,
             parentId: parentId ? DB.objectId(parentId) : null,
+            isSet: isSet,
         }, function (err, result) {
-            if (err) return res.json({'err': err});
+            if (err) return res.json({ 'err': err });
             const newId = result.insertedId;
             db.collection('galleries').updateOne({
                 '_id': DB.objectId(parentId)
             }, {
                 '$push': { 'children' : newId }
             }, function (err, result) {
-                return res.json({'gallery': {'id': newId, 'name': name, 'parentId': parentId }});
+                return res.json({ 'gallery': { 'id': newId, 'name': name, 'parentId': parentId, 'isSet': isSet }});
             });
         });
     });
@@ -224,19 +226,39 @@ app.post('/api/galleries', urlEncodedParser, function(req, res) {
 app.post('/api/galleries/:id', urlEncodedParser, function(req, res) {
 
     const galleryId = req.params.id;
-    const name = req.body.name;
 
-    DB.connect(function (err, db) {
-        if (err) return res.json({'err': err});
-        db.collection('galleries').updateOne({
-            '_id': DB.objectId(galleryId)
-        }, {
-            '$set': {'name': name}
-        }, function (err, result) {
-            if (err) return res.json({'err': err});
-            return res.json({'gallery': {'id': galleryId, 'name': name}});
+    getGallery(galleryId)
+        .then(gallery => {
+
+            let setParams = {};
+
+            if (!_.isUndefined(req.body.name)) {
+                setParams.name = req.body.name;
+            }
+
+            if (!_.isUndefined(req.body.sortBy)) {
+                if (!_.includes(['pos', 'filename', 'date'], req.body.sortBy)) {
+                    return res.json({ 'err': 'Invalid sort method specified.' });
+                }
+                if (gallery.isSet && req.body.sortBy === 'pos') {
+                    return res.json({ 'err': 'Gallery sets cannot be custom sorted.' });
+                }
+                setParams.sortBy = req.body.sortBy;
+            }
+
+            DB.connect(function (err, db) {
+                if (err) return res.json({'err': err});
+                db.collection('galleries').updateOne({
+                    '_id': DB.objectId(galleryId)
+                }, {
+                    '$set': setParams
+                }, function (err, result) {
+                    if (err) return res.json({ 'err': err });
+                    const updatedGallery = Object.assign(gallery, setParams);
+                    return res.json({ 'gallery': updatedGallery });
+                });
+            });
         });
-    });
 });
 
 /*
@@ -375,16 +397,49 @@ app.get('/api/galleries/:id/photos', function(req, res) {
 
     const galleryId = req.params.id;
 
-    const getPhotosFromGallery = (galleryId) => {
+    const getPhotosFromGallery = (galleryId, sortBy) => {
         return new Promise(function(resolve, reject) {
             DB.connect(function (err, db) {
                 if (err) return reject(err);
-                db.collection('photos').aggregate([
-                    { $match: {'galleries.id': DB.objectId(galleryId)} },
-                    { $unwind: '$galleries' },
-                    { $match: {'galleries.id': DB.objectId(galleryId)} },
-                    { $sort: {'galleries.pos': 1} },
-                ]).toArray(function (err, photos) {
+                if (sortBy === 'pos') {
+                    db.collection('photos').aggregate([
+                        { $match: {'galleries.id': DB.objectId(galleryId)} },
+                        { $unwind: '$galleries' },
+                        { $match: {'galleries.id': DB.objectId(galleryId)} },
+                        { $sort: {'galleries.pos': 1} },
+                    ]).toArray(function (err, photos) {
+                        if (err) return reject(err);
+                        return resolve(photos);
+                    });
+                } else {
+                    // Default, sort by capture date/time
+                    let sort = { 'exif.exif.DateTimeOriginal': 1, 'fn': 1 };
+                    if (sortBy === 'filename') {
+                        sort = { 'fn': 1 };
+                    }
+                    db.collection('photos').find({
+                        'galleries.id': DB.objectId(galleryId)
+                    }).sort(sort).toArray(function (err, photos) {
+                        if (err) return reject(err);
+                        return resolve(photos);
+                    });
+                }
+            });
+        });
+    }
+
+    const getPhotosFromChildGalleries = (children, sortBy) => {
+        return new Promise(function(resolve, reject) {
+            DB.connect(function (err, db) {
+                if (err) return reject(err);
+                // Default, sort by capture date/time
+                let sort = { 'exif.exif.DateTimeOriginal': 1, 'fn': 1 };
+                if (sortBy === 'filename') {
+                    sort = { 'fn': 1 };
+                }
+                db.collection('photos').find({
+                    'galleries.id': { '$in': children }
+                }).sort(sort).toArray(function (err, photos) {
                     if (err) return reject(err);
                     return resolve(photos);
                 });
@@ -394,10 +449,19 @@ app.get('/api/galleries/:id/photos', function(req, res) {
 
     getGallery(galleryId)
         .then(gallery => {
-            return getPhotosFromGallery(galleryId)
-                .then((photos) => {
-                    return res.json({'photos': DB.toResponse(photos)});
-                })
+            const sortBy = gallery.sortBy ? gallery.sortBy : 'date';
+            // Gallery sets get child photos
+            if (gallery.isSet) {
+                return getPhotosFromChildGalleries(gallery.children, sortBy)
+                    .then((photos) => {
+                        return res.json({'photos': DB.toResponse(photos)});
+                    });
+            } else {
+                return getPhotosFromGallery(galleryId, sortBy)
+                    .then((photos) => {
+                        return res.json({'photos': DB.toResponse(photos)});
+                    });
+            }
         })
         .catch(err => {
             return res.json({'err': err});
@@ -414,62 +478,57 @@ app.put('/api/galleries/:galleryId/photo/:photoId', function(req, res) {
     const galleryId = req.params.galleryId;
     const photoId = req.params.photoId;
 
-    DB.connect(function (err, db) {
-        db.collection('photos').findOne({
-            '_id': DB.objectId(photoId),
-            'galleries.id': DB.objectId(galleryId)
-        }, function (err, photo) {
-            if (err) return res.json({'err': err});
-            if (photo !== null) {
-                return res.json({'err': 'Photo already in this gallery'});
+    getGallery(galleryId)
+        .then(gallery => {
+            if (gallery.isSet) {
+                return res.json({'err': 'Cannot add photos to gallery sets'});
             }
-            getMaxPosition(galleryId)
-                .then(position => {
-                    db.collection('photos').updateOne({
-                        '_id': DB.objectId(photoId)
-                    }, {
-                        '$push': { 'galleries': { 'id': DB.objectId(galleryId), 'pos': position + 1 } }
-                    }, function (err, result) {
-                        if (err) return res.json({'err': err});
-                        return res.json({ 'success': true });
-                    });
-                })
+            DB.connect(function (err, db) {
+                db.collection('photos').findOne({
+                    '_id': DB.objectId(photoId),
+                    'galleries.id': DB.objectId(galleryId)
+                }, function (err, photo) {
+                    if (err) return res.json({'err': err});
+                    if (photo !== null) {
+                        return res.json({'err': 'Photo already in this gallery'});
+                    }
+                    getMaxPosition(galleryId)
+                        .then(position => {
+                            db.collection('photos').updateOne({
+                                '_id': DB.objectId(photoId)
+                            }, {
+                                '$push': { 'galleries': { 'id': DB.objectId(galleryId), 'pos': position + 1 } }
+                            }, function (err, result) {
+                                if (err) return res.json({'err': err});
+                                return res.json({ 'success': true });
+                            });
+                        })
+                });
+            });
         });
-    });
+
 });
 
 /*
     DELETE /api/galleries/:galleryId/photo/:photoId
-    Remove a photo from a gallery and it's parent and children galleries
+    Remove a photo from a gallery
 */
 app.delete('/api/galleries/:galleryId/photo/:photoId', function(req, res) {
 
     const galleryId = req.params.galleryId;
     const photoId = req.params.photoId;
 
-    const galleries = [DB.objectId(galleryId)];
-
-    getGallery(galleryId)
-        .then(gallery => {
-            if (!_.isEmpty(gallery.parentId)) {
-                galleries.push(gallery.parentId);
-            }
-            if (!_.isEmpty(gallery.children)) {
-                galleries.push(...gallery.children);
-            }
-
-            DB.connect(function (err, db) {
-                db.collection('photos').updateOne({
-                    '_id': DB.objectId(photoId),
-                    'galleries.id': DB.objectId(galleryId)
-                }, {
-                    '$pull': { 'galleries': { 'id': { '$in': galleries } } }
-                }, function (err, result) {
-                    if (err) return res.json({'err': err});
-                    return res.json({'success': true});
-                });
-            });
+    DB.connect(function (err, db) {
+        db.collection('photos').updateOne({
+            '_id': DB.objectId(photoId),
+            'galleries.id': DB.objectId(galleryId)
+        }, {
+            '$pull': { 'galleries': { 'id': DB.objectId(galleryId) } }
+        }, function (err, result) {
+            if (err) return res.json({ 'err': err });
+            return res.json({ 'success': true });
         });
+    });
 
 });
 
@@ -642,41 +701,31 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
         });
     }
 
-    /* Get the gallery info for the gallery we're uploading the file to */
-    getGallery(galleryId)
-        .then(gallery => {
-            getGalleriesForInsert(gallery)
-                .then(galleries => {
-                    /* Process the files */
-                    return Promise.all(files.map(processFile))
-                        .then((photoData) => {
-                            /*
-                                Put the gallery information and position into each photo
-                            */
-                            const photos = photoData.map((p) => {
-                                p.galleries = galleries.map(function(g) {
-                                    g.pos++;
-                                    return {...g};
+    getMaxPosition(galleryId)
+        .then(position => {
+            return Promise.all(files.map(processFile))
+                .then(photoData => {
+                    const photos = photoData.map((p) => {
+                        p.galleries = [{ 'id': DB.objectId(galleryId), 'pos': ++position }];
+                        return p;
+                    });
+                    console.log(photos);
+                    /* Save the photos to the database */
+                    return Promise.all(photos.map(savePhoto))
+                        .then((photos) => {
+                            /* Delete the temporary upload files */
+                            return Promise.all(files.map((f) => unlinkAsync(f.path)))
+                                .then(() => {
+                                    console.log('returning data', DB.toResponse(photos));
+                                    return res.json({'photos': DB.toResponse(photos)});
                                 });
-                                return p;
-                            });
-                            /* Save the photos to the database */
-                            return Promise.all(photos.map(savePhoto))
-                                .then((photos) => {
-                                    /* Delete the temporary upload files */
-                                    return Promise.all(files.map((f) => unlinkAsync(f.path)))
-                                        .then(() => {
-                                            console.log('returning data', DB.toResponse(photos));
-                                            return res.json({'photos': DB.toResponse(photos)});
-                                        })
-                                })
-                        })
+                        });
                 })
                 .catch(err => {
                     return res.json({'err': err});
                 });
+        });
 
-        })
 
 /*
     getMaxPosition(galleryId)

@@ -71,7 +71,6 @@ var AddPhoto = _wrapComponent('AddPhoto')(function (_React$Component) {
         };
 
         _this.handleDrop = function (e) {
-            e.stopPropagation();
             e.preventDefault();
 
             var dt = e.dataTransfer;
@@ -424,6 +423,12 @@ function collectPhotoTarget(connect, monitor) {
 }
 
 var photoTarget = {
+    canDrop: function canDrop(props, monitor) {
+        if (props.gallery.isSet) {
+            return false;
+        }
+        return true;
+    },
     drop: function drop(props, monitor, component) {
         if (!monitor.didDrop()) {
             props.addPhotoToGallery(monitor.getItem().photoId, props.gallery.id);
@@ -585,12 +590,13 @@ var GalleryForm = _wrapComponent('GalleryForm')(function (_React$Component3) {
             e.preventDefault();
             var name = _this3.refs.galleryNameInput.value.trim();
             var parentGallery = _this3.refs.parentGallerySelect.value;
+            var isSet = _this3.refs.isSet.value;
             if (!name) {
                 return;
             }
             _this3.refs.galleryNameInput.value = '';
             _this3.refs.parentGallerySelect.value = '';
-            _this3.props.addGallery(name, parentGallery);
+            _this3.props.addGallery(name, parentGallery, isSet);
         };
 
         return _this3;
@@ -599,7 +605,14 @@ var GalleryForm = _wrapComponent('GalleryForm')(function (_React$Component3) {
     _createClass(GalleryForm, [{
         key: 'render',
         value: function render() {
-            var parentGalleryOptions = this.props.galleries.map(function (gallery) {
+            var props = this.props;
+            var title = 'Add Gallery';
+            if (props.addSet) {
+                title = 'Add Gallery Set';
+            }
+            var parentGalleryOptions = props.galleries.filter(function (g) {
+                return g.isSet;
+            }).map(function (gallery) {
                 return _react3.default.createElement(
                     'option',
                     { value: gallery.id, key: gallery.id },
@@ -608,14 +621,14 @@ var GalleryForm = _wrapComponent('GalleryForm')(function (_React$Component3) {
             });
             return _react3.default.createElement(
                 _reactBootstrap.Modal,
-                { show: this.props.show, onHide: this.props.toggleAddGalleryModal },
+                { show: props.show, onHide: props.toggleAddGalleryModal },
                 _react3.default.createElement(
                     _reactBootstrap.Modal.Header,
                     { closeButton: true },
                     _react3.default.createElement(
                         _reactBootstrap.Modal.Title,
                         null,
-                        'Add New Gallery'
+                        title
                     )
                 ),
                 _react3.default.createElement(
@@ -626,7 +639,7 @@ var GalleryForm = _wrapComponent('GalleryForm')(function (_React$Component3) {
                         { className: 'gallery-form', onSubmit: this.handleSubmit },
                         _react3.default.createElement('input', { type: 'text', placeholder: 'Gallery Name', ref: 'galleryNameInput' }),
                         _react3.default.createElement('br', null),
-                        'As sub-gallery of:',
+                        'Add to gallery set:',
                         _react3.default.createElement(
                             'select',
                             { name: 'parentGallery', ref: 'parentGallerySelect' },
@@ -638,6 +651,7 @@ var GalleryForm = _wrapComponent('GalleryForm')(function (_React$Component3) {
                             parentGalleryOptions
                         ),
                         _react3.default.createElement('br', null),
+                        _react3.default.createElement('input', { type: 'hidden', name: 'isSet', ref: 'isSet', value: props.addSet }),
                         _react3.default.createElement('input', { type: 'submit', value: 'Add Gallery' })
                     )
                 )
@@ -658,7 +672,18 @@ var GalleriesPanel = _wrapComponent('GalleriesPanel')(function (_React$Component
     function GalleriesPanel(props) {
         _classCallCheck(this, GalleriesPanel);
 
-        return _possibleConstructorReturn(this, (GalleriesPanel.__proto__ || Object.getPrototypeOf(GalleriesPanel)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (GalleriesPanel.__proto__ || Object.getPrototypeOf(GalleriesPanel)).call(this, props));
+
+        _this4.handleButtonClick = function (e) {
+            e.stopPropagation();
+            var addSet = false;
+            if (e.target.id === 'addGallerySetButton') {
+                addSet = true;
+            }
+            return _this4.props.actions.toggleAddGalleryModal(addSet);
+        };
+
+        return _this4;
     }
 
     _createClass(GalleriesPanel, [{
@@ -674,10 +699,15 @@ var GalleriesPanel = _wrapComponent('GalleriesPanel')(function (_React$Component
                 ),
                 _react3.default.createElement(
                     _reactBootstrap.Button,
-                    { bsStyle: 'primary', bsSize: 'small', onClick: this.props.actions.toggleAddGalleryModal },
+                    { bsStyle: 'primary', bsSize: 'small', onClick: this.handleButtonClick, id: 'addGallerySetButton' },
+                    'Add Gallery Set'
+                ),
+                _react3.default.createElement(
+                    _reactBootstrap.Button,
+                    { bsStyle: 'primary', bsSize: 'small', onClick: this.handleButtonClick, id: 'addGalleryButton' },
                     'Add Gallery'
                 ),
-                _react3.default.createElement(GalleryForm, { show: this.props.galleryPanel.showAddGalleryModal, galleries: this.props.galleries }),
+                _react3.default.createElement(GalleryForm, { show: this.props.galleryPanel.showAddGalleryModal, galleries: this.props.galleries, addSet: this.props.galleryPanel.addSet }),
                 _react3.default.createElement(GalleryList, { data: this.props.galleries })
             );
         }
@@ -709,8 +739,7 @@ var styles = _aphrodite.StyleSheet.create({
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.addGallery = undefined;
-exports.toggleAddGalleryModal = toggleAddGalleryModal;
+exports.addGallery = exports.toggleAddGalleryModal = undefined;
 exports.updateGallery = updateGallery;
 exports.deleteGallery = deleteGallery;
 exports.addPhotoToGallery = addPhotoToGallery;
@@ -729,18 +758,18 @@ var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function toggleAddGalleryModal() {
+var toggleAddGalleryModal = exports.toggleAddGalleryModal = function toggleAddGalleryModal(addSet) {
     return function (dispatch) {
-        return dispatch({ type: 'TOGGLE_ADDGALLERY_MODAL' });
+        return dispatch({ type: 'TOGGLE_ADDGALLERY_MODAL', addSet: addSet });
     };
-}
+};
 
-var addGallery = exports.addGallery = function addGallery(name, parentId) {
+var addGallery = exports.addGallery = function addGallery(name, parentId, isSet) {
     return function (dispatch) {
         return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries', {
             method: 'POST',
             headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
-            body: 'name=' + name + '&parentId=' + parentId
+            body: 'name=' + name + '&parentId=' + parentId + '&isSet=' + isSet
         }).then(function (response) {
             return response.json();
         }).then(function (json) {
@@ -898,7 +927,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 //function galleries(state = {isFetching: false, items: []}, action) {
 
 function galleryPanel() {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { 'showAddGalleryModal': false };
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { 'showAddGalleryModal': false, 'addSet': false };
     var action = arguments[1];
 
     var newState = {};
@@ -910,6 +939,7 @@ function galleryPanel() {
             } else {
                 newState.showAddGalleryModal = true;
             }
+            newState.addSet = action.addSet;
             return newState;
         default:
             return state;
@@ -1003,6 +1033,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _components = {
+    GallerySortSelector: {
+        displayName: 'GallerySortSelector'
+    },
     GalleryHeader: {
         displayName: 'GalleryHeader'
     },
@@ -1024,45 +1057,92 @@ function _wrapComponent(id) {
     };
 }
 
-var GalleryHeader = _wrapComponent('GalleryHeader')(function (_React$Component) {
-    _inherits(GalleryHeader, _React$Component);
+var GallerySortSelector = _wrapComponent('GallerySortSelector')(function (_React$Component) {
+    _inherits(GallerySortSelector, _React$Component);
+
+    function GallerySortSelector(props) {
+        _classCallCheck(this, GallerySortSelector);
+
+        var _this = _possibleConstructorReturn(this, (GallerySortSelector.__proto__ || Object.getPrototypeOf(GallerySortSelector)).call(this, props));
+
+        _this.handleChange = function (e) {
+            e.preventDefault();
+            _this.props.updateGallerySort(_this.props.gallery.id, _this.refs.gallerySortSelector.value);
+            return false;
+        };
+
+        return _this;
+    }
+
+    _createClass(GallerySortSelector, [{
+        key: 'render',
+        value: function render() {
+            var props = this.props;
+
+            return _react3.default.createElement(
+                'form',
+                null,
+                _react3.default.createElement(
+                    'select',
+                    { value: props.gallery.sortBy, ref: 'gallerySortSelector', onChange: this.handleChange },
+                    _react3.default.createElement(
+                        'option',
+                        { value: 'date' },
+                        'Photo Date'
+                    ),
+                    _react3.default.createElement(
+                        'option',
+                        { value: 'filename' },
+                        'Filename'
+                    ),
+                    !props.gallery.isSet && _react3.default.createElement(
+                        'option',
+                        { value: 'pos' },
+                        'Custom'
+                    )
+                )
+            );
+        }
+    }]);
+
+    return GallerySortSelector;
+}(_react3.default.Component));
+
+GallerySortSelector = (0, _reactRedux.connect)(function (state, ownProps) {
+    return ownProps;
+}, { updateGallerySort: _galleryviewactions.updateGallerySort })(GallerySortSelector);
+
+var GalleryHeader = _wrapComponent('GalleryHeader')(function (_React$Component2) {
+    _inherits(GalleryHeader, _React$Component2);
 
     function GalleryHeader(props) {
         _classCallCheck(this, GalleryHeader);
 
-        var _this = _possibleConstructorReturn(this, (GalleryHeader.__proto__ || Object.getPrototypeOf(GalleryHeader)).call(this, props));
+        var _this2 = _possibleConstructorReturn(this, (GalleryHeader.__proto__ || Object.getPrototypeOf(GalleryHeader)).call(this, props));
 
-        _this.state = { isEditing: false };
-        _this.startEdit = _this.startEdit.bind(_this);
-        _this.handleChange = _this.handleChange.bind(_this);
-        _this.handleUpdate = _this.handleUpdate.bind(_this);
-        _this.handleDelete = _this.handleDelete.bind(_this);
-        return _this;
+        _this2.startEdit = function () {
+            _this2.setState({ 'name': _this2.props.gallery.name, 'isEditing': true });
+        };
+
+        _this2.handleChange = function (e) {
+            _this2.setState({ 'name': e.target.value });
+        };
+
+        _this2.handleUpdate = function (e) {
+            e.preventDefault();
+            _this2.props.updateGallery(_this2.props.gallery.id, _this2.state.name, _this2.props.gallery.parentId);
+            _this2.setState({ 'isEditing': false });
+        };
+
+        _this2.handleDelete = function (e) {
+            _this2.props.deleteGallery(_this2.props.gallery.id, _this2.props.gallery.parentId);
+        };
+
+        _this2.state = { isEditing: false };
+        return _this2;
     }
 
     _createClass(GalleryHeader, [{
-        key: 'startEdit',
-        value: function startEdit() {
-            this.setState({ 'name': this.props.gallery.name, 'isEditing': true });
-        }
-    }, {
-        key: 'handleChange',
-        value: function handleChange(e) {
-            this.setState({ 'name': e.target.value });
-        }
-    }, {
-        key: 'handleUpdate',
-        value: function handleUpdate(e) {
-            e.preventDefault();
-            this.props.updateGallery(this.props.gallery.id, this.state.name, this.props.gallery.parentId);
-            this.setState({ 'isEditing': false });
-        }
-    }, {
-        key: 'handleDelete',
-        value: function handleDelete(e) {
-            this.props.deleteGallery(this.props.gallery.id, this.props.gallery.parentId);
-        }
-    }, {
         key: 'render',
         value: function render() {
             if (this.state.isEditing) {
@@ -1098,16 +1178,16 @@ GalleryHeader = (0, _reactRedux.connect)(function (state, ownProps) {
     return ownProps;
 }, { updateGallery: _galleryviewactions.updateGallery, deleteGallery: _galleryviewactions.deleteGallery })(GalleryHeader);
 
-var GalleryView = _wrapComponent('GalleryView')(function (_React$Component2) {
-    _inherits(GalleryView, _React$Component2);
+var GalleryView = _wrapComponent('GalleryView')(function (_React$Component3) {
+    _inherits(GalleryView, _React$Component3);
 
     function GalleryView(props, context) {
         _classCallCheck(this, GalleryView);
 
-        var _this2 = _possibleConstructorReturn(this, (GalleryView.__proto__ || Object.getPrototypeOf(GalleryView)).call(this, props, context));
+        var _this3 = _possibleConstructorReturn(this, (GalleryView.__proto__ || Object.getPrototypeOf(GalleryView)).call(this, props, context));
 
-        _this2.props.actions.loadGallery(props.params.galleryId);
-        return _this2;
+        _this3.props.actions.loadGallery(props.params.galleryId);
+        return _this3;
     }
 
     _createClass(GalleryView, [{
@@ -1120,11 +1200,14 @@ var GalleryView = _wrapComponent('GalleryView')(function (_React$Component2) {
     }, {
         key: 'render',
         value: function render() {
+            var props = this.props;
+
             return _react3.default.createElement(
                 'div',
                 { id: 'gallery-view' },
-                _react3.default.createElement(GalleryHeader, { gallery: this.props.gallery }),
-                _react3.default.createElement(_addPhoto2.default, { galleryId: this.props.gallery.id }),
+                _react3.default.createElement(GalleryHeader, { gallery: props.gallery }),
+                _react3.default.createElement(GallerySortSelector, { gallery: props.gallery }),
+                !props.gallery.isSet && _react3.default.createElement(_addPhoto2.default, { galleryId: props.gallery.id }),
                 _react3.default.createElement(_photogridcontainer2.default, null)
             );
         }
@@ -1143,6 +1226,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.loadGallery = loadGallery;
 exports.updateGallery = updateGallery;
+exports.updateGallerySort = updateGallerySort;
 exports.deleteGallery = deleteGallery;
 
 var _config = require('../../../config');
@@ -1193,6 +1277,27 @@ function updateGallery(id, name, parentId) {
 
 function didUpdateGallery(id, name, parentId) {
     return { type: 'UPDATE_GALLERY', id: id, name: name, parentId: parentId };
+}
+
+function updateGallerySort(id, sort) {
+    return function (dispatch) {
+        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries/' + id, {
+            method: 'POST',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
+            body: 'sortBy=' + sort
+        }).then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            return dispatch(didUpdateGallerySort(id, sort));
+        }).catch(function (e) {
+            console.log('--Update Gallery Sort--');
+            console.log(e);
+        });
+    };
+}
+
+function didUpdateGallerySort(id, sort) {
+    return { type: 'UPDATE_GALLERY_SORT', id: id, sort: sort };
 }
 
 function deleteGallery(id, parentId) {
@@ -1267,6 +1372,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -1274,7 +1381,7 @@ var _lodash2 = _interopRequireDefault(_lodash);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function gallery() {
-    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { id: '', name: '', parentId: '' };
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { id: '', name: '', parentId: '', sortBy: '' };
     var action = arguments[1];
 
     var newState = {};
@@ -1284,11 +1391,16 @@ function gallery() {
             return newState;
         case 'UPDATE_GALLERY':
             if (state.id === action.id) {
-                newState = { id: action.id, name: action.name, parentId: action.parentId };
+                newState = _extends({}, state);
+                newState.name = action.name;
                 return newState;
             } else {
                 return state;
             }
+        case 'UPDATE_GALLERY_SORT':
+            newState = _extends({}, state);
+            newState.sortBy = action.sort;
+            return newState;
         case 'DELETE_GALLERY':
             if (state.id === action.id) {
                 return {};
@@ -1446,7 +1558,8 @@ var photoSource = {
             photoId: props.photo.id,
             galleryId: props.galleryId,
             i: props.i,
-            originalIndex: props.i
+            originalIndex: props.i,
+            canSort: props.canSort
         };
     },
     endDrag: function endDrag(props, monitor) {
@@ -1470,12 +1583,21 @@ var photoSource = {
             var targetPhotoId = monitor.getItem().targetId;
             props.sortPhoto(props.galleryId, draggedPhotoId, targetPhotoId, direction);
         } else {
+            if (!monitor.getItem().canSort) {
+                props.toggleCannotSortDialog();
+            }
             props.movePhoto(monitor.getItem().i, originalIndex);
         }
     }
 };
 
 var photoTarget = {
+    canDrop: function canDrop(props, monitor) {
+        if (!monitor.getItem().canSort) {
+            return false;
+        }
+        return true;
+    },
     hover: function hover(props, monitor, component) {
         var dragIndex = monitor.getItem().i;
         var hoverIndex = props.i;
@@ -1567,13 +1689,14 @@ GridPhoto.propTypes = {
     connectDragSource: _react2.PropTypes.func.isRequired,
     connectDropTarget: _react2.PropTypes.func.isRequired,
     isDragging: _react2.PropTypes.bool.isRequired,
-    isOver: _react2.PropTypes.bool.isRequired
+    isOver: _react2.PropTypes.bool.isRequired,
+    canSort: _react2.PropTypes.bool.isRequired
 };
 GridPhoto = (0, _reactDnd.DragSource)(ItemTypes.PHOTO, photoSource, collectPhotoSource)(GridPhoto);
 GridPhoto = (0, _reactDnd.DropTarget)(ItemTypes.PHOTO, photoTarget, collectPhotoTarget)(GridPhoto);
 GridPhoto = (0, _reactRedux.connect)(function (state, ownProps) {
     return ownProps;
-}, { movePhoto: _photogridactions.movePhoto, sortPhoto: _photogridactions.sortPhoto })(GridPhoto);
+}, { movePhoto: _photogridactions.movePhoto, sortPhoto: _photogridactions.sortPhoto, toggleCannotSortDialog: _photogridactions.toggleCannotSortDialog })(GridPhoto);
 
 var PhotoGrid = _wrapComponent('PhotoGrid')((_temp = _class2 = function (_React$Component3) {
     _inherits(PhotoGrid, _React$Component3);
@@ -1595,8 +1718,12 @@ var PhotoGrid = _wrapComponent('PhotoGrid')((_temp = _class2 = function (_React$
     _createClass(PhotoGrid, [{
         key: 'componentWillReceiveProps',
         value: function componentWillReceiveProps(nextProps) {
-            if (nextProps.galleryId !== this.props.galleryId && !_lodash2.default.isUndefined(nextProps.galleryId)) {
-                this.props.actions.loadPhotos(nextProps.galleryId);
+            /* Reload if we've changed galleries
+               OR if we've changed the sort method for a gallery
+               BUT NOT if we've deleted the gallery
+            */
+            if (nextProps.gallery.id !== this.props.gallery.id && !_lodash2.default.isUndefined(nextProps.gallery.id) || nextProps.gallery.sortBy !== this.props.gallery.sortBy) {
+                this.props.actions.loadPhotos(nextProps.gallery.id);
             }
         }
     }, {
@@ -1604,9 +1731,21 @@ var PhotoGrid = _wrapComponent('PhotoGrid')((_temp = _class2 = function (_React$
         value: function render() {
             var props = this.props;
 
+            var canSort = true;
+            var cannotSortDialogBody = '';
+            if (props.gallery.isSet) {
+                canSort = false;
+                cannotSortDialogBody = 'Photos cannot be custom sorted in a gallery set. You can sort them in the individual gallery.';
+            }
+            if (!props.gallery.isSet && props.gallery.sortBy !== 'pos') {
+                canSort = false;
+                cannotSortDialogBody = 'You must change the sort order for this gallery to "custom" before manually sorting.';
+            }
+
             var photos = props.photos.map(function (photo, i) {
-                return _react3.default.createElement(GridPhoto, { key: photo.id, galleryId: props.galleryId, photo: photo, i: i });
+                return _react3.default.createElement(GridPhoto, { key: photo.id, galleryId: props.gallery.id, photo: photo, i: i, canSort: canSort });
             });
+
             return _react3.default.createElement(
                 'div',
                 { className: 'photo-grid', tabIndex: '0', onKeyUp: this.handleDeleteKeyPress },
@@ -1618,6 +1757,42 @@ var PhotoGrid = _wrapComponent('PhotoGrid')((_temp = _class2 = function (_React$
                     body: this.state.confirmDeleteDialogBody,
                     confirmText: 'Delete',
                     title: 'Delete Photos' }),
+                _react3.default.createElement(
+                    _reactBootstrap.Modal,
+                    { show: this.state.showCannotDeleteDialog, onHide: this.toggleCannotDeleteDialog },
+                    _react3.default.createElement(
+                        _reactBootstrap.Modal.Header,
+                        { closeButton: true },
+                        _react3.default.createElement(
+                            _reactBootstrap.Modal.Title,
+                            null,
+                            'Cannot Remove Photos from Gallery Set'
+                        )
+                    ),
+                    _react3.default.createElement(
+                        _reactBootstrap.Modal.Body,
+                        null,
+                        'You cannot remove photos directly from a gallery set. Remove the photo from the gallery it is in.'
+                    )
+                ),
+                _react3.default.createElement(
+                    _reactBootstrap.Modal,
+                    { show: props.photoGrid.showCannotSortDialog, onHide: props.actions.toggleCannotSortDialog },
+                    _react3.default.createElement(
+                        _reactBootstrap.Modal.Header,
+                        { closeButton: true },
+                        _react3.default.createElement(
+                            _reactBootstrap.Modal.Title,
+                            null,
+                            'Cannot Sort Photo'
+                        )
+                    ),
+                    _react3.default.createElement(
+                        _reactBootstrap.Modal.Body,
+                        null,
+                        cannotSortDialogBody
+                    )
+                ),
                 photos
             );
         }
@@ -1629,6 +1804,11 @@ var PhotoGrid = _wrapComponent('PhotoGrid')((_temp = _class2 = function (_React$
 
     this.handleDeleteKeyPress = function (e) {
         if (e.keyCode === 46) {
+            // Don't allow deleting photos from a gallery set
+            if (_this4.props.gallery.isSet) {
+                _this4.toggleCannotDeleteDialog();
+                return false;
+            }
             var selectedPhotos = _this4.props.photos.filter(function (p) {
                 return p.isSelected;
             });
@@ -1647,13 +1827,23 @@ var PhotoGrid = _wrapComponent('PhotoGrid')((_temp = _class2 = function (_React$
 
     this.handleDelete = function () {
         var props = _this4.props;
-        var selectedPhotos = _this4.props.photos.filter(function (p) {
+
+        var selectedPhotos = props.photos.filter(function (p) {
             return p.isSelected;
         });
         selectedPhotos.forEach(function (p) {
             props.actions.deletePhoto(p.id);
         });
         _this4.setState({ 'showConfirmDeleteDialog': false });
+    };
+
+    this.toggleCannotDeleteDialog = function () {
+        if (_this4.state.showCannotDeleteDialog) {
+            _this4.setState({ 'showCannotDeleteDialog': false });
+        } else {
+            _this4.setState({ 'showCannotDeleteDialog': true });
+        }
+        return;
     };
 }, _temp));
 
@@ -1701,6 +1891,7 @@ exports.deletePhoto = deletePhoto;
 exports.sortPhoto = sortPhoto;
 exports.movePhoto = movePhoto;
 exports.togglePhotoSelect = togglePhotoSelect;
+exports.toggleCannotSortDialog = toggleCannotSortDialog;
 
 var _config = require('../../../config');
 
@@ -1803,6 +1994,12 @@ function togglePhotoSelect(id) {
     };
 }
 
+function toggleCannotSortDialog() {
+    return function (dispatch) {
+        return dispatch({ type: 'TOGGLE_CANNOT_SORT_DIALOG' });
+    };
+}
+
 },{"../../../config":21,"isomorphic-fetch":239}],14:[function(require,module,exports){
 'use strict';
 
@@ -1832,7 +2029,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var mapStateToProps = function mapStateToProps(state) {
     return {
-        galleryId: state.gallery.id,
+        photoGrid: state.photoGrid,
+        gallery: state.gallery,
         photos: state.photos
     };
 };
@@ -1854,6 +2052,11 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
+exports.photoGrid = photoGrid;
+exports.photos = photos;
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -1867,6 +2070,25 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function photoGrid() {
+    var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { 'showCannotSortDialog': false };
+    var action = arguments[1];
+
+    var newState = {};
+    switch (action.type) {
+        case 'TOGGLE_CANNOT_SORT_DIALOG':
+            newState = _extends({}, state);
+            if (state.showCannotSortDialog) {
+                newState.showCannotSortDialog = false;
+            } else {
+                newState.showCannotSortDialog = true;
+            }
+            return newState;
+        default:
+            return state;
+    }
+}
 
 function photos() {
     var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
@@ -1920,8 +2142,6 @@ function photos() {
             return state;
     }
 }
-
-exports.default = photos;
 
 },{"immutability-helper":223,"lodash":391}],16:[function(require,module,exports){
 'use strict';
@@ -2043,15 +2263,14 @@ var _galleriespanelreducers = require('./components/GalleriesPanel/galleriespane
 
 var _photogridreducers = require('./components/PhotoGrid/photogridreducers');
 
-var _photogridreducers2 = _interopRequireDefault(_photogridreducers);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var rootReducer = (0, _redux.combineReducers)({
     gallery: _galleryviewreducers2.default,
     galleryPanel: _galleriespanelreducers.galleryPanel,
     galleries: _galleriespanelreducers.galleries,
-    photos: _photogridreducers2.default
+    photoGrid: _photogridreducers.photoGrid,
+    photos: _photogridreducers.photos
 });
 
 exports.default = rootReducer;

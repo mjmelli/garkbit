@@ -38,6 +38,26 @@ function didUpdateGallery(id, name, parentId) {
   return { type: 'UPDATE_GALLERY', id, name, parentId }
 }
 
+export function updateGallerySort(id, sort) {
+    return dispatch => {
+        return Fetch(Config.API_URL + '/galleries/' + id, {
+            method: 'POST',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
+            body: 'sortBy=' + sort,
+        })
+        .then(response => response.json())
+        .then(json => dispatch(didUpdateGallerySort(id, sort)))
+        .catch(function(e) {
+            console.log('--Update Gallery Sort--');
+            console.log(e);
+        })
+    }
+}
+
+function didUpdateGallerySort(id, sort) {
+    return { type: 'UPDATE_GALLERY_SORT', id, sort }
+}
+
 export function deleteGallery(id, parentId) {
     return ( dispatch ) => {
         return Fetch(Config.API_URL + '/galleries/' + id, {

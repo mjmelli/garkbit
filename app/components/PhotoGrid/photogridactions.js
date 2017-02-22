@@ -87,3 +87,9 @@ export function togglePhotoSelect(id) {
         return dispatch({ type: 'TOGGLE_PHOTO_SELECT', id });
     }
 }
+
+export function toggleCannotSortDialog() {
+    return dispatch => {
+        return dispatch({ type: 'TOGGLE_CANNOT_SORT_DIALOG' });
+    }
+}

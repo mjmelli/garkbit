@@ -3,8 +3,8 @@ import React, { PropTypes } from 'react';
 import { findDOMNode } from 'react-dom';
 import { connect } from 'react-redux';
 import { StyleSheet, css } from 'aphrodite';
-import { Button } from 'react-bootstrap';
-import { sortPhoto, movePhoto, deletePhoto, togglePhotoSelect } from './photogridactions';
+import { Button, Modal } from 'react-bootstrap';
+import { sortPhoto, movePhoto, deletePhoto, togglePhotoSelect, toggleCannotSortDialog } from './photogridactions';
 import { DragSource, DropTarget } from 'react-dnd';
 import Confirm from '../Confirm/confirm';
 
@@ -64,6 +64,7 @@ const photoSource = {
             galleryId: props.galleryId,
             i: props.i,
             originalIndex: props.i,
+            canSort: props.canSort,
         };
     },
     endDrag(props, monitor) {
@@ -84,12 +85,21 @@ const photoSource = {
             const targetPhotoId = monitor.getItem().targetId;
             props.sortPhoto(props.galleryId, draggedPhotoId, targetPhotoId, direction);
         } else {
+            if (!monitor.getItem().canSort) {
+                props.toggleCannotSortDialog();
+            }
             props.movePhoto(monitor.getItem().i, originalIndex);
         }
     },
 };
 
 const photoTarget = {
+    canDrop(props, monitor) {
+        if (!monitor.getItem().canSort) {
+            return false;
+        }
+        return true;
+    },
     hover(props, monitor, component) {
         const dragIndex = monitor.getItem().i;
         const hoverIndex = props.i;
@@ -160,12 +170,13 @@ GridPhoto.propTypes = {
     connectDropTarget: PropTypes.func.isRequired,
     isDragging: PropTypes.bool.isRequired,
     isOver: PropTypes.bool.isRequired,
+    canSort: PropTypes.bool.isRequired,
 }
 GridPhoto = DragSource(ItemTypes.PHOTO, photoSource, collectPhotoSource)(GridPhoto);
 GridPhoto = DropTarget(ItemTypes.PHOTO, photoTarget, collectPhotoTarget)(GridPhoto);
 GridPhoto = connect(
     (state, ownProps) => ownProps,
-    {movePhoto, sortPhoto}
+    {movePhoto, sortPhoto, toggleCannotSortDialog}
 )(GridPhoto);
 
 class PhotoGrid extends React.Component {
@@ -178,13 +189,25 @@ class PhotoGrid extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.galleryId !== this.props.galleryId && !_.isUndefined(nextProps.galleryId)) {
-            this.props.actions.loadPhotos(nextProps.galleryId);
+        /* Reload if we've changed galleries
+           OR if we've changed the sort method for a gallery
+           BUT NOT if we've deleted the gallery
+        */
+        if (
+            (nextProps.gallery.id !== this.props.gallery.id && !_.isUndefined(nextProps.gallery.id))
+            || nextProps.gallery.sortBy !== this.props.gallery.sortBy
+        ) {
+            this.props.actions.loadPhotos(nextProps.gallery.id);
         }
     }
 
     handleDeleteKeyPress = (e) => {
         if (e.keyCode === 46) {
+            // Don't allow deleting photos from a gallery set
+            if (this.props.gallery.isSet) {
+                this.toggleCannotDeleteDialog();
+                return false;
+            }
             const selectedPhotos = this.props.photos.filter(function (p) {
                 return p.isSelected;
             });
@@ -203,7 +226,8 @@ class PhotoGrid extends React.Component {
 
     handleDelete = () => {
         const props = this.props;
-        const selectedPhotos = this.props.photos.filter(function (p) {
+
+        const selectedPhotos = props.photos.filter(function (p) {
             return p.isSelected;
         });
         selectedPhotos.forEach(function (p) {
@@ -212,14 +236,35 @@ class PhotoGrid extends React.Component {
         this.setState({ 'showConfirmDeleteDialog': false });
     }
 
+    toggleCannotDeleteDialog = () => {
+        if (this.state.showCannotDeleteDialog) {
+            this.setState({ 'showCannotDeleteDialog': false });
+        } else {
+            this.setState({ 'showCannotDeleteDialog': true });
+        }
+        return;
+    }
+
     render () {
         const props = this.props;
 
+        let canSort = true;
+        let cannotSortDialogBody = '';
+        if (props.gallery.isSet) {
+            canSort = false;
+            cannotSortDialogBody = 'Photos cannot be custom sorted in a gallery set. You can sort them in the individual gallery.';
+        }
+        if (!props.gallery.isSet && props.gallery.sortBy !== 'pos') {
+            canSort = false;
+            cannotSortDialogBody = 'You must change the sort order for this gallery to "custom" before manually sorting.';
+        }
+
         const photos = props.photos.map(function(photo, i) {
             return (
-                <GridPhoto key={photo.id} galleryId={props.galleryId} photo={photo} i={i}/>
+                <GridPhoto key={photo.id} galleryId={props.gallery.id} photo={photo} i={i} canSort={canSort} />
             );
         });
+
         return (
             <div className="photo-grid" tabIndex="0" onKeyUp={this.handleDeleteKeyPress}>
                 <Confirm
@@ -231,6 +276,23 @@ class PhotoGrid extends React.Component {
                     confirmText="Delete"
                     title="Delete Photos">
                 </Confirm>
+                <Modal show={this.state.showCannotDeleteDialog} onHide={this.toggleCannotDeleteDialog} >
+                    <Modal.Header closeButton>
+                        <Modal.Title>Cannot Remove Photos from Gallery Set</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        You cannot remove photos directly from a gallery set. Remove the photo from
+                        the gallery it is in.
+                    </Modal.Body>
+                </Modal>
+                <Modal show={props.photoGrid.showCannotSortDialog} onHide={props.actions.toggleCannotSortDialog} >
+                    <Modal.Header closeButton>
+                        <Modal.Title>Cannot Sort Photo</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        {cannotSortDialogBody}
+                    </Modal.Body>
+                </Modal>
                 {photos}
             </div>
         );
