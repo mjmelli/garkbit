@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import React, { PropTypes } from 'react';
-import { Router, Route, Link } from 'react-router';
-import { bindActionCreators } from 'redux';
+import { Link } from 'react-router';
 import { connect } from 'react-redux';
 import { StyleSheet, css } from 'aphrodite';
 import { Button, Modal } from 'react-bootstrap';
@@ -16,7 +15,8 @@ const ItemTypes = {
 function collectPhotoTarget(connect, monitor) {
     return {
         connectDropTarget: connect.dropTarget(),
-        isOver: monitor.isOver()
+        isOver: monitor.isOver({ shallow: true }),
+        canDrop: monitor.canDrop(),
     };
 }
 
@@ -66,7 +66,9 @@ class GalleryListItem extends React.Component {
     }
 
     render () {
-        const { gallery, children, connectDropTarget, isOver } = this.props;
+        const { gallery, children, connectDropTarget, isOver, canDrop } = this.props;
+
+        const color = isOver && !canDrop ? 'red' : 'black';
 
         if (this.state.isEditing) {
             return (
@@ -78,7 +80,7 @@ class GalleryListItem extends React.Component {
         } else {
             return connectDropTarget(
                 <li className="gallery">
-                    <span onClick={this.startEdit}>{this.state.name}</span>
+                    <span onClick={this.startEdit} style={{ color }}>{this.state.name}</span>
                     <Link to={"/gallery/" + gallery.id}>Go</Link>
                     <Confirm
                         onConfirm={this.handleDelete}
@@ -101,6 +103,7 @@ GalleryListItem.propTypes = {
     gallery: PropTypes.object.isRequired,
     connectDropTarget: PropTypes.func.isRequired,
     isOver: PropTypes.bool.isRequired,
+    canDrop: PropTypes.bool.isRequired,
 }
 GalleryListItem = DropTarget(ItemTypes.PHOTO, photoTarget, collectPhotoTarget)(GalleryListItem);
 GalleryListItem = connect(

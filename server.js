@@ -150,29 +150,33 @@ const getMaxPosition = (galleryId) => {
     });
 }
 
-const getGalleriesForInsert = (gallery) => {
+const getAllPhotos = () => {
     return new Promise(function(resolve, reject) {
-        /* Check for a parent gallery */
-        const galleryIds = [gallery._id];
-        if (!_.isEmpty(gallery.parentId)) {
-            galleryIds.push(gallery.parentId);
-        }
-        /* Get the position we need to insert at for the gallery and any parent gallery */
-        Promise.all(galleryIds.map(getMaxPosition))
-            .then(positions => {
-                return galleryIds.map(function (g, i) {
-                    const gallery = { 'id': g, 'pos': positions[i] };
-                    return gallery;
-                })
-            })
-            .then(galleries => {
-                return resolve(galleries);
-            })
-            .catch(err => {
-                return reject(err);
+        DB.connect(function (err, db) {
+            if (err) return reject(err);
+            db.collection('photos').find().toArray(function(err, photos) {
+                if (err) return reject(err);
+                return resolve(photos);
             });
+        });
     });
 }
+
+/*
+    GET /api/photos
+    Get all photos
+*/
+app.get('/api/photos', function(req, res) {
+
+    getAllPhotos()
+        .then(photos => {
+            return res.json({ 'photos': DB.toResponse(photos) });
+        })
+        .catch(err => {
+            return res.json({ 'err': err });
+        });
+
+});
 
 /*
     GET /api/galleries
@@ -182,9 +186,9 @@ app.get('/api/galleries', function(req, res) {
 
     getGalleries()
         .then(galleries => {
-            return res.json({'galleries': galleries});
+            return res.json({ 'galleries': galleries });
         }).catch(err => {
-            return res.json({'err': err});
+            return res.json({ 'err': err });
         });
 
 });
@@ -532,9 +536,6 @@ app.delete('/api/galleries/:galleryId/photo/:photoId', function(req, res) {
 
 });
 
-app.get('/api/photos', function(req, res) {
-});
-
 /*
     POST /api/photos
     Upload a new photo
@@ -564,6 +565,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
             FS.unlink(file, function (err) {
                  if (err) {
                      //return reject(err);
+                     console.log(err);
                      return resolve();
                  }
                  return resolve();
@@ -572,128 +574,84 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
     }
 
     const processOriginalImage = (file, toFilePath) => {
-        return new Promise(function(resolve, reject) {
-            console.log('processing original image');
-            const image = Sharp(file);
-            return image
-                .withMetadata()
-                .jpeg({quality: 100})
-                .rotate()
-                .toFile(toFilePath)
-                .then(() => {
-                    return resolve();
-                })
-                .catch(err => {
-                    return reject(err);
-                });
-        });
+        console.log('processing original image');
+        const image = Sharp(file);
+        return image
+            .withMetadata()
+            .jpeg({quality: 100})
+            .rotate()
+            .toFile(toFilePath)
     }
 
     const processMetadata = (file) => {
-        return new Promise(function(resolve, reject) {
-            console.log('processing metadata');
-            const image = Sharp(file);
-            return image
-                .metadata()
-                .then(metadata => {
-                    let height = metadata.height;
-                    let width = metadata.width;
-                    if (metadata.orientation > 4) {
-                        width = metadata.height;
-                        height = metadata.width;
-                    }
+        console.log('processing metadata');
+        const image = Sharp(file);
+        return image
+            .metadata()
+            .then(metadata => {
+                let height = metadata.height;
+                let width = metadata.width;
+                if (metadata.orientation > 4) {
+                    width = metadata.height;
+                    height = metadata.width;
+                }
 
-                    const newHeight = 100;
-                    const ratio = Math.round(height / newHeight);
-                    const newWidth = Math.round(width / ratio);
+                const newHeight = 100;
+                const ratio = Math.round(height / newHeight);
+                const newWidth = Math.round(width / ratio);
 
-                    const exifData = (metadata.exif) ? Exif(metadata.exif) : {};
+                const exifData = (metadata.exif) ? Exif(metadata.exif) : {};
 
-                    const returnData = { height, width, newHeight, newWidth, exifData };
+                const returnData = { height, width, newHeight, newWidth, exifData };
 
-                    return resolve(returnData);
-                })
-                .catch(err => {
-                    return reject(err);
-                });
-        });
+                return returnData;
+            });
     }
 
     const processThumbnailImage = (file, toWidth, toHeight, toFilePath) => {
-        return new Promise(function(resolve, reject) {
-            console.log('processing thumbnail');
-            const image = Sharp(file);
-            return image
-                .jpeg({quality: 100})
-                .rotate()
-                .resize(toWidth, toHeight)
-                .toFile(toFilePath)
-                .then(() => {
-                    return resolve();
-                })
-                .catch(err => {
-                    return reject(err);
-                });
-        });
+        console.log('processing thumbnail');
+        const image = Sharp(file);
+        return image
+            .jpeg({quality: 100})
+            .rotate()
+            .resize(toWidth, toHeight)
+            .toFile(toFilePath)
     }
 
     const processFile = (file) => {
-        return new Promise(function(resolve, reject) {
-            console.log('processing file');
-            const filename = file.filename;
-            const filenameParts = _.split(filename, '.');
-            const rawFilename = filenameParts[0];
-            const fileExt = filenameParts[1];
-            const subfolder = getSubfolder(filename);
-            const folder = photoFolder + subfolder;
-            const largePath = folder + '/' + filename;
-            const thumbFilename = rawFilename + '_thumb.' + fileExt;
-            const thumbPath = folder + '/' + thumbFilename;
+        console.log('processing file');
+        const filename = file.filename;
+        const filenameParts = _.split(filename, '.');
+        const rawFilename = filenameParts[0];
+        const fileExt = filenameParts[1];
+        const subfolder = getSubfolder(filename);
+        const folder = photoFolder + subfolder;
+        const largePath = folder + '/' + filename;
+        const thumbFilename = rawFilename + '_thumb.' + fileExt;
+        const thumbPath = folder + '/' + thumbFilename;
 
-            return mkdirAsync(folder)
-                .then(() => processOriginalImage(file.path, largePath))
-                .then(() => processMetadata(file.path))
-                .then(fileData => {
-                    fileData.filename = filename;
-                    fileData.thumbFilename = thumbFilename;
-                    fileData.subfolder = subfolder;
-                    return processThumbnailImage(file.path, fileData.newWidth, fileData.newHeight, thumbPath)
-                        .then(() => {
-                            return resolve(fileData);
-                        });
-                })
-                .catch(err => {
-                    return reject(err);
-                });
-        });
+        return mkdirAsync(folder)
+            .then(() => processOriginalImage(file.path, largePath))
+            .then(() => processMetadata(file.path))
+            .then(fileData => {
+                fileData.filename = filename;
+                fileData.thumbFilename = thumbFilename;
+                fileData.subfolder = subfolder;
+                return processThumbnailImage(file.path, fileData.newWidth, fileData.newHeight, thumbPath)
+                    .then(() => {
+                        return fileData;
+                        //return resolve(fileData);
+                    });
+            });
     }
 
-    const savePhoto = (photoData) => {
+    const getPhotoByFilename = (filename) => {
         return new Promise(function(resolve, reject) {
-            const { filename, thumbFilename, subfolder, width, height, newWidth, newHeight, exifData, galleries } = photoData;
-
-            const photo = {
-                'fn': filename,
-                'path': subfolder,
-                'sizes': {
-                    'original': {
-                        'uri': subfolder + '/' + filename,
-                        'width': width,
-                        'height': height,
-                    },
-                    'thumb': {
-                        'uri': subfolder + '/' + thumbFilename,
-                        'width': newWidth,
-                        'height': newHeight,
-                    },
-                },
-                'galleries': galleries,
-                'exif': exifData,
-            };
-
             DB.connect(function (err, db) {
                 if (err) return reject(err);
-                db.collection('photos').insertOne(photo, function (err, results) {
+                db.collection('photos').findOne({
+                    'fn': filename,
+                }, function(err, photo) {
                     if (err) return reject(err);
                     return resolve(photo);
                 });
@@ -701,12 +659,74 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
         });
     }
 
+    const savePhoto = (photoData) => {
+        const { filename, thumbFilename, subfolder, width, height, newWidth, newHeight, exifData, gallery } = photoData;
+
+        // Check if photo already exists
+        return getPhotoByFilename(filename)
+            .then(photo => {
+                // If photo already exists
+                if (photo !== null) {
+                    photo.updatedExisting = true;
+                    // Check if the photo is already in this gallery
+                    // If it is, we're done
+                    if (_.findIndex(photo.galleries, { 'id': gallery.id }) > -1) {
+                        photo.existedInGallery = true;
+                        return photo;
+                    }
+                    // Add it to this gallery
+                    DB.connect(function (err, db) {
+                        if (err) return err;
+                        db.collection('photos').updateOne({
+                            'fn': filename,
+                        }, {
+                            '$push': { 'galleries': gallery }
+                        }, function (err, results) {
+                            if (err) return err;
+                            photo.galleries.push(gallery);
+                            return photo;
+                        });
+                    });
+                } else {
+                    // Insert photo if it does not already exist
+                    const photo = {
+                        'fn': filename,
+                        'path': subfolder,
+                        'sizes': {
+                            'original': {
+                                'uri': subfolder + '/' + filename,
+                                'width': width,
+                                'height': height,
+                            },
+                            'thumb': {
+                                'uri': subfolder + '/' + thumbFilename,
+                                'width': newWidth,
+                                'height': newHeight,
+                            },
+                        },
+                        'galleries': [gallery],
+                        'exif': exifData,
+                    };
+
+                    return new Promise(function(resolve, reject) {
+                        DB.connect(function (err, db) {
+                            if (err) return reject(err);
+                            return db.collection('photos').insertOne(photo, function (err, results) {
+                                if (err) return reject(err);
+                                return resolve(photo);
+                            });
+                        });
+                    });
+                }
+            });
+    }
+
     getMaxPosition(galleryId)
         .then(position => {
             return Promise.all(files.map(processFile))
                 .then(photoData => {
                     const photos = photoData.map((p) => {
-                        p.galleries = [{ 'id': DB.objectId(galleryId), 'pos': ++position }];
+                        p.gallery = { 'id': DB.objectId(galleryId), 'pos': ++position };
                         return p;
                     });
                     console.log(photos);
@@ -913,37 +933,49 @@ app.delete('/api/photos/:id', function(req, res) {
     });
 });
 
-function fetchInitialState (renderProps, callback) {
+function fetchInitialState (renderProps, cb) {
 
     let data = {};
 
     Async.parallel([
         function (cb) {
             getGalleries()
-            .then((galleries) => {
-                data.galleries = galleries;
-                return cb();
-            }).catch(err => {
-                return cb(err);
-            });
+                .then((galleries) => {
+                    data.galleries = galleries;
+                    return cb();
+                }).catch(err => {
+                    return cb(err);
+                });
         },
         function (cb) {
-            if (_.isUndefined(renderProps.params.galleryId)) {
-                return cb();
-            }
-            data.photos = {};
-            DB.connect(function (err, db) {
-                if (err) return cb(err);
-                db.collection('photos').find({'galleries.id': DB.objectId(renderProps.params.galleryId)}).toArray(function (err, photos) {
-                    if (err) return cb(err);
-                    data.photos = DB.toResponse(photos);
+            if (renderProps.location.pathname = '/photos') {
+                getAllPhotos()
+                    .then(photos => {
+                        if (photos === null) {
+                            data.photos = [];
+                        } else {
+                            data.photos = DB.toResponse(photos);
+                        }
+                        return cb();
+                    });
+            } else {
+                if (_.isUndefined(renderProps.params.galleryId)) {
                     return cb();
+                }
+                data.photos = [];
+                DB.connect(function (err, db) {
+                    if (err) return cb(err);
+                    db.collection('photos').find({'galleries.id': DB.objectId(renderProps.params.galleryId)}).toArray(function (err, photos) {
+                        if (err) return cb(err);
+                        data.photos = DB.toResponse(photos);
+                        return cb();
+                    });
                 });
-            });
+            }
         },
     ], function (err, results) {
-        if (err) return callback(err);
-        return callback(null, data);
+        if (err) return cb(err);
+        return cb(null, data);
     });
 
     return;

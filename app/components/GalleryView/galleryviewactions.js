@@ -18,6 +18,12 @@ function didLoadGallery(gallery) {
     return { type: 'LOAD_GALLERY', gallery };
 }
 
+export function unloadGallery() {
+    return dispatch => {
+        return dispatch({ type: 'UNLOAD_GALLERY' });
+    }
+}
+
 export function updateGallery(id, name, parentId) {
     return dispatch => {
         return Fetch(Config.API_URL + '/galleries/' + id, {

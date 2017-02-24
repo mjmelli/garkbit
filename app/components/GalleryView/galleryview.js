@@ -23,7 +23,7 @@ class GallerySortSelector extends React.Component {
                 <select value={props.gallery.sortBy} ref="gallerySortSelector" onChange={this.handleChange}>
                     <option value="date">Photo Date</option>
                     <option value="filename">Filename</option>
-                    {!props.gallery.isSet && 
+                    {!props.gallery.isSet &&
                         <option value="pos">Custom</option>
                     }
                 </select>
@@ -93,6 +93,11 @@ class GalleryView extends React.Component {
         if (nextProps.params.galleryId !== this.props.params.galleryId) {
             this.props.actions.loadGallery(nextProps.params.galleryId);
         }
+    }
+
+    componentWillUnmount() {
+        // Unload the gallery to force a reload when we navigate away (someplace outside of galleries) and then back to this gallery
+        this.props.actions.unloadGallery();
     }
 
     render () {

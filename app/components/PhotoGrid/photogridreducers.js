@@ -25,7 +25,13 @@ export function photos(state = [], action) {
             newState = action.photos;
             return newState;
         case 'ADD_PHOTO':
-            newState = [ ...state, ...action.photos ];
+            const newPhotos = action.photos.filter((p) => {
+                if (!_.isUndefined(p.existedInGallery) && p.existedInGallery) {
+                    return false;
+                }
+                return true;
+            });
+            newState = [...state, ...newPhotos];
             return newState;
         case 'UPDATE_PHOTO': {
 

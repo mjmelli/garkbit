@@ -85,9 +85,6 @@ const photoSource = {
             const targetPhotoId = monitor.getItem().targetId;
             props.sortPhoto(props.galleryId, draggedPhotoId, targetPhotoId, direction);
         } else {
-            if (!monitor.getItem().canSort) {
-                props.toggleCannotSortDialog();
-            }
             props.movePhoto(monitor.getItem().i, originalIndex);
         }
     },
@@ -96,7 +93,7 @@ const photoSource = {
 const photoTarget = {
     canDrop(props, monitor) {
         if (!monitor.getItem().canSort) {
-            return false;
+            //return false;
         }
         return true;
     },
@@ -131,35 +128,41 @@ const photoTarget = {
         monitor.getItem().targetId = hoverPhotoId;
         monitor.getItem().dragIndex = dragIndex;
     },
-    drop(target) {
-        return { 'target': { 'type': 'photo', 'id': target.photo.id } };
+    drop(props) {
+        if (!props.canSort) {
+            props.toggleCannotSortDialog();
+            return;
+        }
+        return { 'target': { 'type': 'photo', 'id': props.photo.id } };
     }
 };
 
 function collectPhotoSource(connect, monitor) {
     return {
         connectDragSource: connect.dragSource(),
-        isDragging: monitor.isDragging()
+        isDragging: monitor.isDragging(),
     }
 }
 
 function collectPhotoTarget(connect, monitor) {
     return {
         connectDropTarget: connect.dropTarget(),
-        isOver: monitor.isOver()
+        isOver: monitor.isOver(),
+        canDrop: monitor.canDrop(),
     };
 }
 
 class GridPhoto extends React.Component {
     render() {
-        const { galleryId, photo, i, connectDragSource, connectDropTarget, isDragging, isOver } = this.props;
-        const opacity = isDragging ? 0 : 1;
+        const { galleryId, photo, i, connectDragSource, connectDropTarget, isDragging, isOver, canDrop } = this.props;
+        const opacity = isDragging ? 0.2 : 1;
+        const border = (isDragging && canDrop) ? '1px dashed black' : 'none';
 
         return connectDragSource(connectDropTarget(
-            <div className={css(styles.photo)} style={{ opacity }}>
+            <div className={css(styles.photo)} style={{ opacity, border }}>
                 <Photo photo={photo} />
             </div>
-        ));
+        ), { dropEffect: 'move' });
     }
 }
 GridPhoto.propTypes = {
@@ -170,6 +173,7 @@ GridPhoto.propTypes = {
     connectDropTarget: PropTypes.func.isRequired,
     isDragging: PropTypes.bool.isRequired,
     isOver: PropTypes.bool.isRequired,
+    canDrop: PropTypes.bool.isRequired,
     canSort: PropTypes.bool.isRequired,
 }
 GridPhoto = DragSource(ItemTypes.PHOTO, photoSource, collectPhotoSource)(GridPhoto);
@@ -178,6 +182,7 @@ GridPhoto = connect(
     (state, ownProps) => ownProps,
     {movePhoto, sortPhoto, toggleCannotSortDialog}
 )(GridPhoto);
+export { GridPhoto };
 
 class PhotoGrid extends React.Component {
     constructor (props) {
@@ -266,7 +271,7 @@ class PhotoGrid extends React.Component {
         });
 
         return (
-            <div className="photo-grid" tabIndex="0" onKeyUp={this.handleDeleteKeyPress}>
+            <div className={css(styles.photoGrid)} tabIndex="0" onKeyUp={this.handleDeleteKeyPress}>
                 <Confirm
                     onConfirm={this.handleDelete}
                     onCancel={this.handleDeleteDialogCancel}
@@ -301,10 +306,21 @@ class PhotoGrid extends React.Component {
 export default PhotoGrid;
 
 const styles = StyleSheet.create({
+    photoGrid: {
+        ':focus': {
+            outline: 'none',
+            boxShadow: 'none',
+        }
+    },
     photo: {
         position: 'relative',
         float: 'left',
         marginRight: '10px',
+        ':focus': {
+            outline: 'none',
+            boxShadow: 'none',
+            border: '1px solid black',
+        }
     },
     photoDeleteButton: {
         position: 'absolute',
@@ -318,13 +334,4 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         cursor: 'pointer',
     },
-    photoPlaceholder: {
-        position: 'relative',
-        float: 'left',
-        width: 150,
-        height: 100,
-        backgroundColor: '#aaaaaa',
-        marginRight: '10px',
-        display: 'none',
-    }
 });

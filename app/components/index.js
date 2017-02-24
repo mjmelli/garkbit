@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router';
 import { StyleSheet, css } from 'aphrodite';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
@@ -9,6 +10,7 @@ class AppView extends React.Component {
         return (
             <div>
                 <div className={css(styles.sidebar)}>
+                    <Link to={"/photos"}>All Photos</Link>
                     {sidebar}
                 </div>
                 <div className={css(styles.content)}>

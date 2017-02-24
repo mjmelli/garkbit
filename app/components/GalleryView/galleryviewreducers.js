@@ -6,6 +6,8 @@ function gallery(state = {id: '', name: '', parentId: '', sortBy: ''}, action) {
         case 'LOAD_GALLERY':
             newState = action.gallery;
             return newState;
+        case 'UNLOAD_GALLERY':
+            return newState;
         case 'UPDATE_GALLERY':
             if (state.id === action.id) {
                 newState = {...state};
