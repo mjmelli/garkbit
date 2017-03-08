@@ -1,50 +1,39 @@
 import _ from 'lodash';
 import React, { PropTypes } from 'react';
-import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
-import * as PhotosViewActions from './photosviewactions';
-import { GridPhoto } from '../PhotoGrid/photogrid';
+import PhotoGrid from '../PhotoGrid/photogrid';
+import { loadAllPhotos } from '../../modules/Photos/photosactions';
 
 class PhotosView extends React.Component {
     constructor (props) {
         super(props);
-        props.actions.loadPhotos();
+        props.loadAllPhotos();
     }
 
     render () {
         const props = this.props;
-
-        const photos = props.photos.map(function(photo, i) {
-            return (
-                <GridPhoto key={photo.id} galleryId={null} photo={photo} i={i} canSort={false} />
-            );
-        });
 
         return (
             <div id="gallery-view">
                 <div className="gallery">
                     <span>All Photos</span>
                 </div>
-                {photos}
+                <PhotoGrid photos={props.photos} />
             </div>
         );
 
     }
 }
 
-const mapStateToProps = (state) => {
-    return {
-        photos: state.photos,
-    }
-}
+PhotosView.PropTypes = {
+    photos: PropTypes.array.isRequired,
+};
 
-const mapDispatchToProps = (dispatch) => {
-    return {
-        actions: bindActionCreators(PhotosViewActions, dispatch)
-    }
-}
-
-export default PhotosView = connect(
-    mapStateToProps,
-    mapDispatchToProps
+export default connect(
+    (state) => {
+        return {
+            photos: state.photos,
+        };
+    },
+    { loadAllPhotos }
 )(PhotosView);

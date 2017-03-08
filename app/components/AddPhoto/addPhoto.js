@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { addPhoto } from './addPhotoActions';
+import { addPhoto } from './addphotoactions';
 import { canUseDOM } from '../../../lib/utils.js';
 
 class AddPhoto extends React.Component {

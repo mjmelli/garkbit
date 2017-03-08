@@ -19,16 +19,22 @@ class Confirm extends React.Component {
         }
     }
 
-    onClick = () => {
+    onClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         this.setState({ 'show': true });
     }
 
-    onHide = () => {
+    onHide = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         this.setState({ 'show': false });
     }
 
-    onConfirm = () => {
-        this.onHide();
+    onConfirm = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.setState({ 'show': false });
         this.props.onConfirm();
     }
 
@@ -48,7 +54,6 @@ class Confirm extends React.Component {
                 <Modal.Body>
                     {this.props.body}
                 </Modal.Body>
-
                 <Modal.Footer>
                     <Button bsStyle="default" onClick={onCancel}>{this.props.cancelText}</Button>
                     <Button bsStyle="primary" onClick={this.onConfirm}>{this.props.confirmText}</Button>

@@ -2,8 +2,8 @@ import React from 'react';
 import { Route, IndexRoute } from 'react-router';
 import App from './components/index';
 import PhotosView from './components/PhotosView/photosview';
-import GalleriesPanel from './components/GalleriesPanel/galleriespanelcontainer';
-import GalleryView from './components/GalleryView/galleryviewcontainer';
+import GalleriesPanel from './components/GalleriesPanel/galleriespanel';
+import GalleryView from './components/GalleryView/galleryview';
 
 export default (
     <Route name="app" component={ App } path="/">
