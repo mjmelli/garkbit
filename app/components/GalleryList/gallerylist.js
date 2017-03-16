@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import React, { PropTypes } from 'react';
+import { StyleSheet, css } from 'aphrodite';
 import GalleryListItem from './GalleryListItem/gallerylistitem';
 
 const GalleryList = (props) => {
@@ -19,7 +20,7 @@ const GalleryList = (props) => {
         );
     });
     return (
-        <ul className="gallery-list">
+        <ul className={css(styles.galleryList)}>
             {galleries}
         </ul>
     );
@@ -30,3 +31,13 @@ GalleryList.PropTypes = {
 };
 
 export default GalleryList;
+
+const styles = StyleSheet.create({
+    galleryList: {
+        padding: 0,
+        paddingTop: 10,
+        paddingBottom: 10,
+        margin: 0,
+        fontSize: 12,
+    },
+});

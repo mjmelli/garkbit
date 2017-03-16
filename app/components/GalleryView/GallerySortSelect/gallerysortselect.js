@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
+import { StyleSheet, css } from 'aphrodite';
+import { Form, FormGroup, ControlLabel, FormControl } from 'react-bootstrap';
 import { updateGallerySort } from './gallerysortselectactions';
 
 class GallerySortSelector extends React.Component {
@@ -9,7 +11,7 @@ class GallerySortSelector extends React.Component {
 
     handleChange = (e) => {
         e.preventDefault();
-        this.props.updateGallerySort(this.props.gallery.id, this.refs.gallerySortSelector.value);
+        this.props.updateGallerySort(this.props.gallery.id, e.target.value);
         return false;
     }
 
@@ -17,15 +19,18 @@ class GallerySortSelector extends React.Component {
         const props = this.props;
 
         return (
-            <form>
-                <select value={props.gallery.sortBy} ref="gallerySortSelector" onChange={this.handleChange}>
-                    <option value="date">Photo Date</option>
-                    <option value="filename">Filename</option>
-                    {!props.gallery.isSet &&
-                        <option value="pos">Custom</option>
-                    }
-                </select>
-            </form>
+            <Form inline className={css(styles.gallerySortSelect)}>
+                <FormGroup bsSize="small">
+                    <ControlLabel>Sort:&nbsp;</ControlLabel>
+                    <FormControl componentClass="select" name="gallerySortSelector" value={props.gallery.sortBy} ref="gallerySortSelector" onChange={this.handleChange}>
+                        <option value="date">Photo Date</option>
+                        <option value="filename">Filename</option>
+                        {!props.gallery.isSet &&
+                            <option value="pos">Custom</option>
+                        }
+                    </FormControl>
+                </FormGroup>
+            </Form>
         )
     }
 }
@@ -40,3 +45,8 @@ GallerySortSelector = connect(
 )(GallerySortSelector);
 
 export default GallerySortSelector;
+
+const styles = StyleSheet.create({
+    gallerySortSelect: {
+    },
+});

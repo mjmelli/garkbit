@@ -66,23 +66,33 @@ class PhotoGrid extends React.Component {
 
         let canSort = true;
         let cannotSortDialogBody = '';
-        if (props.gallery.isSet) {
+        if (_.isUndefined(props.gallery)) {
             canSort = false;
-            cannotSortDialogBody = 'Photos cannot be custom sorted in a gallery set. You can sort them in the individual gallery.';
+            cannotSortDialogBody = 'Photos cannot be custom sorted in the All Photos view';
+        } else {
+            if (props.gallery.isSet) {
+                canSort = false;
+                cannotSortDialogBody = 'Photos cannot be custom sorted in a gallery set. You can sort them in the individual gallery.';
+            }
+            if (!props.gallery.isSet && props.gallery.sortBy !== 'pos') {
+                canSort = false;
+                cannotSortDialogBody = 'You must change the sort order for this gallery to "custom" before manually sorting.';
+            }
         }
-        if (!props.gallery.isSet && props.gallery.sortBy !== 'pos') {
-            canSort = false;
-            cannotSortDialogBody = 'You must change the sort order for this gallery to "custom" before manually sorting.';
+
+        let galleryId;
+        if (!_.isUndefined(props.gallery)) {
+            galleryId = props.gallery.id;
         }
 
         const photos = props.photos.map(function(photo, i) {
             return (
-                <GridThumbnail key={photo.id} galleryId={props.gallery.id} photo={photo} i={i} canSort={canSort} />
+                <GridThumbnail key={photo.id} galleryId={galleryId} photo={photo} i={i} canSort={canSort} />
             );
         });
 
         return (
-            <div className={css(styles.photoGrid)} tabIndex="0" onKeyUp={this.handleDeleteKeyPress}>
+            <div className={css(styles.photoGrid) + ' clear'} tabIndex="0" onKeyUp={this.handleDeleteKeyPress}>
                 <Confirm
                     onConfirm={this.handleDelete}
                     onCancel={this.handleDeleteDialogCancel}
@@ -114,7 +124,6 @@ class PhotoGrid extends React.Component {
         );
     }
 }
-export { PhotoGrid };
 
 PhotoGrid.PropTypes = {
     photos: PropTypes.array.isRequired,
@@ -134,6 +143,7 @@ export default connect(
 
 const styles = StyleSheet.create({
     photoGrid: {
+        padding: '15px',
         ':focus': {
             outline: 'none',
             boxShadow: 'none',

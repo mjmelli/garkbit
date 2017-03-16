@@ -91,6 +91,6 @@ export const movePhoto = (dragIndex, hoverIndex) => {
 const didLoadPhotos = (photos) => ({ type: 'LOAD_PHOTOS', photos });
 const didUpdatePhoto = (id, name) => ({ type: 'UPDATE_PHOTO', id, name });
 const didDeletePhoto = (id) => ({ type: 'DELETE_PHOTO', id });
-const didTogglePhotoSelect = () => ({ type: 'TOGGLE_PHOTO_SELECT', id });
+const didTogglePhotoSelect = (id) => ({ type: 'TOGGLE_PHOTO_SELECT', id });
 const didSortPhoto = (id, targetId) => ({ type: 'SORT_PHOTO', id, targetId });
 const didMovePhoto = (dragIndex, hoverIndex) => ({ type: 'MOVE_PHOTO', dragIndex, hoverIndex });

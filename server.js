@@ -675,16 +675,18 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
                         return photo;
                     }
                     // Add it to this gallery
-                    DB.connect(function (err, db) {
-                        if (err) return err;
-                        db.collection('photos').updateOne({
-                            'fn': filename,
-                        }, {
-                            '$push': { 'galleries': gallery }
-                        }, function (err, results) {
-                            if (err) return err;
-                            photo.galleries.push(gallery);
-                            return photo;
+                    return new Promise(function(resolve, reject) {
+                        DB.connect(function (err, db) {
+                            if (err) return reject(err);
+                            db.collection('photos').updateOne({
+                                'fn': filename,
+                            }, {
+                                '$push': { 'galleries': gallery }
+                            }, function (err, results) {
+                                if (err) return err;
+                                photo.galleries.push(gallery);
+                                return resolve(photo);
+                            });
                         });
                     });
                 } else {

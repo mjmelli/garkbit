@@ -2,7 +2,8 @@ import _ from 'lodash';
 import React, { PropTypes } from 'react';
 import { Link } from 'react-router';
 import { connect } from 'react-redux';
-import { Button, Modal } from 'react-bootstrap';
+import { StyleSheet, css } from 'aphrodite';
+import { Button, Modal, Glyphicon } from 'react-bootstrap';
 import { DropTarget } from 'react-dnd';
 import Confirm from '../../Confirm/confirm';
 import { updateGallery, deleteGallery, addPhotoToGallery } from '../../../modules/galleries/galleriesactions.js';
@@ -67,7 +68,11 @@ class GalleryListItem extends React.Component {
     render () {
         const { gallery, children, connectDropTarget, isOver, canDrop } = this.props;
 
-        const color = isOver && !canDrop ? 'red' : 'black';
+        const galleryListItemClassName = css(
+                styles.galleryListItemText,
+                isOver && canDrop && styles.droppable,
+                isOver && !canDrop && styles.notDroppable,
+        );
 
         if (this.state.isEditing) {
             return (
@@ -78,18 +83,18 @@ class GalleryListItem extends React.Component {
             );
         } else {
             return connectDropTarget(
-                <li className="gallery">
-                    <span onClick={this.startEdit} style={{ color }}>{this.state.name}</span>
-                    <Link to={"/gallery/" + gallery.id}>Go</Link>
-                    <Confirm
-                        onConfirm={this.handleDelete}
-                        body="Are you sure you want to delete this gallery?"
-                        confirmText="Delete"
-                        title="Delete Gallery">
-                        <button>Delete</button>
-                    </Confirm>
+                <li className={css(styles.galleryListItem)}>
+                    <div className={css(styles.galleryListItemText)}>
+                        {isOver && canDrop &&
+                            <span style={{color: '#29722e'}}><Glyphicon glyph="copy" />&nbsp;</span>
+                        }
+                        {isOver && !canDrop &&
+                            <span style={{color: '#722929'}}><Glyphicon glyph="ban-circle" />&nbsp;</span>
+                        }
+                        <Link to={"/gallery/" + gallery.id}>{this.state.name} <Glyphicon glyph="circle-arrow-right" /></Link>
+                    </div>
                     {typeof children !== 'undefined' &&
-                        <ul>
+                        <ul className={css(styles.galleryList)}>
                             {children}
                         </ul>
                     }
@@ -98,6 +103,16 @@ class GalleryListItem extends React.Component {
         }
     }
 }
+
+/* Delete button code
+<Confirm
+    onConfirm={this.handleDelete}
+    body="Are you sure you want to delete this gallery?"
+    confirmText="Delete"
+    title="Delete Gallery">
+    <button>Delete</button>
+</Confirm>
+*/
 
 GalleryListItem.propTypes = {
     gallery: PropTypes.object.isRequired,
@@ -116,3 +131,28 @@ GalleryListItem = connect(
 )(GalleryListItem);
 
 export default GalleryListItem;
+
+const styles = StyleSheet.create({
+    galleryListItem: {
+        padding: 0,
+        margin: 0,
+        listStyleType: 'none',
+    },
+    galleryListItemText: {
+        padding: 0,
+        margin: 0,
+        lineHeight: 1.8,
+        borderBottom: '1px solid #aaaaaa',
+    },
+    galleryList: {
+        padding: 0,
+        margin: 0,
+        marginLeft: 10,
+    },
+    droppable: {
+        backgroundColor: '#eeffee',
+    },
+    notDroppable: {
+        backgroundColor: '#ffeeee',
+    },
+});

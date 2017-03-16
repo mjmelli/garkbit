@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
+import { StyleSheet, css } from 'aphrodite';
+import { Row, Col } from 'react-bootstrap';
 import PhotoGrid from '../PhotoGrid/photogrid';
 import AddPhoto from '../AddPhoto/addphoto';
 import GallerySortSelect from './GallerySortSelect/gallerysortselect';
@@ -12,6 +14,7 @@ class GalleryView extends React.Component {
     constructor (props, context) {
         super(props, context);
         this.props.loadGallery(props.params.galleryId);
+        this.state = { 'showDropZone': false };
     }
 
     componentWillReceiveProps(nextProps) {
@@ -36,16 +39,48 @@ class GalleryView extends React.Component {
         this.props.unloadGallery();
     }
 
+    handleFileDragEnter = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+
+        if (!_.includes(e.dataTransfer.types, 'Files')) {
+            return false;
+        }
+
+        this.setState({ 'showDropZone': true });
+    }
+
+    handleFileDragOver = (e) => {
+        if (_.includes(e.dataTransfer.types, 'Files')) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    }
+
+    handleFileDragLeave = (e) => {
+        if (!_.isUndefined(e)) {
+            e.preventDefault();
+        }
+
+        this.setState({ 'showDropZone': false });
+    }
+
     render () {
         const props = this.props;
 
         return (
-            <div id="gallery-view">
+            <div className={css(styles.galleryView)} ref="photoDrop" onDragOver={this.handleFileDragOver} onDragEnter={this.handleFileDragEnter}>
                 <GalleryHeader gallery={props.gallery} />
-                <GallerySortSelect gallery={props.gallery} />
-                {!props.gallery.isSet &&
-                    <AddPhoto galleryId={props.gallery.id} />
-                }
+                <div className={css(styles.galleryOptions) + ' clear'}>
+                    <div className={css(styles.left)}>
+                        {!props.gallery.isSet &&
+                            <AddPhoto galleryId={props.gallery.id} showDropZone={this.state.showDropZone} onDragLeave={this.handleFileDragLeave} />
+                        }
+                    </div>
+                    <div className={css(styles.right)}>
+                        <GallerySortSelect gallery={props.gallery} />
+                    </div>
+                </div>
                 <PhotoGrid photos={props.photos} gallery={props.gallery} />
             </div>
         );
@@ -70,3 +105,19 @@ GalleryView = connect(
 )(GalleryView);
 
 export default GalleryView;
+
+const styles = StyleSheet.create({
+    galleryView: {
+        position: 'relative',
+        height: '100%',
+    },
+    galleryOptions: {
+        padding: 20,
+    },
+    left: {
+        float: 'left',
+    },
+    right: {
+        float: 'right',
+    },
+});

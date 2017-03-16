@@ -168,6 +168,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _reactRedux = require('react-redux');
 
+var _aphrodite = require('aphrodite');
+
+var _reactBootstrap = require('react-bootstrap');
+
 var _addphotoactions = require('./addphotoactions');
 
 var _utils = require('../../../lib/utils.js');
@@ -210,15 +214,15 @@ var AddPhoto = _wrapComponent('AddPhoto')(function (_React$Component) {
         _this.handleChange = function (e) {
             e.preventDefault();
 
-            var file = _this.refs.photoInput.files[0];
+            var file = e.target.files[0];
             _this.reader.readAsDataURL(file);
         };
 
         _this.handleSubmit = function (e) {
             e.preventDefault();
 
-            var file = _this.refs.photoInput.files[0];
-            _this.props.addPhoto(file, _this.props.galleryId);
+            var files = _this.photoInput.files;
+            _this.props.addPhoto(files, _this.props.galleryId);
         };
 
         _this.handleDrop = function (e) {
@@ -226,8 +230,14 @@ var AddPhoto = _wrapComponent('AddPhoto')(function (_React$Component) {
 
             var dt = e.dataTransfer;
             var files = dt.files;
-            _this.props.addPhoto(files, _this.props.galleryId);
+            if (files.length !== 0) {
+                _this.props.addPhoto(files, _this.props.galleryId);
+            }
+
+            _this.props.onDragLeave();
         };
+
+        _this.handleFileUploadClick = function (e) {};
 
         _this.state = { file: '' };
         if (_utils.canUseDOM) {
@@ -244,15 +254,33 @@ var AddPhoto = _wrapComponent('AddPhoto')(function (_React$Component) {
     _createClass(AddPhoto, [{
         key: 'render',
         value: function render() {
+            var _this2 = this;
+
             return _react3.default.createElement(
-                'form',
-                { className: 'photo-form', onSubmit: this.handleSubmit, type: 'multipart/form-data' },
-                _react3.default.createElement('input', { type: 'file', onChange: this.handleChange, placeholder: 'Photo', ref: 'photoInput' }),
-                _react3.default.createElement('input', { type: 'submit', value: 'Add Photo' }),
-                _react3.default.createElement('img', { src: this.state.file, ref: 'previewImage', width: '100' }),
-                _react3.default.createElement('div', { style: { width: '300px', height: '100px', border: '2px dashed black' }, ref: 'photoDrop', onDragOver: function onDragOver(e) {
-                        e.stopPropagation();e.preventDefault();
-                    }, onDrop: this.handleDrop })
+                'div',
+                null,
+                this.props.showDropZone && _react3.default.createElement(
+                    'div',
+                    { className: (0, _aphrodite.css)(styles.dropZoneOverlay), onDragLeave: this.props.onDragLeave, onDrop: this.handleDrop },
+                    _react3.default.createElement(
+                        'h1',
+                        { style: { display: 'inline' } },
+                        'Drop Files to Upload'
+                    )
+                ),
+                _react3.default.createElement(
+                    'form',
+                    { className: (0, _aphrodite.css)(styles.addPhotoForm), onSubmit: this.handleSubmit, type: 'multipart/form-data' },
+                    _react3.default.createElement(
+                        'label',
+                        { htmlFor: 'photoInput', className: 'btn btn-sm btn-primary' },
+                        _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'plus-sign' }),
+                        ' Photo'
+                    ),
+                    _react3.default.createElement('input', { id: 'photoInput', className: (0, _aphrodite.css)(styles.fileInput), type: 'file', onChange: this.handleSubmit, ref: function ref(input) {
+                            return _this2.photoInput = input;
+                        } })
+                )
             );
         }
     }]);
@@ -264,7 +292,30 @@ exports.default = AddPhoto = (0, _reactRedux.connect)(function (state, ownProps)
     return ownProps;
 }, { addPhoto: _addphotoactions.addPhoto })(AddPhoto);
 
-},{"../../../lib/utils.js":32,"./addphotoactions":3,"livereactload/babel-transform":251,"react":779,"react-redux":571}],3:[function(require,module,exports){
+
+var styles = _aphrodite.StyleSheet.create({
+    addPhotoForm: {},
+    fileInput: {
+        display: 'none'
+    },
+    dropZoneOverlay: {
+        position: 'absolute',
+        zIndex: 1000,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#888888',
+        color: 'white',
+        border: '5px dashed #ccccff',
+        opacity: '0.75',
+        textAlign: 'center',
+        paddingTop: '45%'
+    }
+});
+
+},{"../../../lib/utils.js":32,"./addphotoactions":3,"aphrodite":34,"livereactload/babel-transform":251,"react":779,"react-bootstrap":500,"react-redux":571}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -583,21 +634,24 @@ var GalleriesPanel = _wrapComponent('GalleriesPanel')(function (_React$Component
             var props = this.props;
             return _react3.default.createElement(
                 'div',
-                { id: 'gallery-panel' },
+                null,
                 _react3.default.createElement(
-                    'h1',
+                    'h3',
                     null,
                     'Galleries'
                 ),
                 _react3.default.createElement(
                     _reactBootstrap.Button,
-                    { bsStyle: 'primary', bsSize: 'small', onClick: this.handleButtonClick, id: 'addGallerySetButton' },
-                    'Add Gallery Set'
+                    { bsStyle: 'primary', bsSize: 'xsmall', onClick: this.handleButtonClick, id: 'addGalleryButton' },
+                    _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'plus-sign' }),
+                    ' Gallery'
                 ),
+                ' ',
                 _react3.default.createElement(
                     _reactBootstrap.Button,
-                    { bsStyle: 'primary', bsSize: 'small', onClick: this.handleButtonClick, id: 'addGalleryButton' },
-                    'Add Gallery'
+                    { bsStyle: 'primary', bsSize: 'xsmall', onClick: this.handleButtonClick, id: 'addGallerySetButton' },
+                    _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'plus-sign' }),
+                    ' Gallery Set'
                 ),
                 _react3.default.createElement(_addgallery2.default, { galleries: props.galleries, show: props.galleriesPanel.showAddGalleryModal, addSet: props.galleriesPanel.addSet, onHide: props.toggleAddGalleryModal }),
                 _react3.default.createElement(_gallerylist2.default, { data: props.galleries })
@@ -736,6 +790,8 @@ var _reactRouter = require('react-router');
 
 var _reactRedux = require('react-redux');
 
+var _aphrodite = require('aphrodite');
+
 var _reactBootstrap = require('react-bootstrap');
 
 var _reactDnd = require('react-dnd');
@@ -848,7 +904,7 @@ var GalleryListItem = _wrapComponent('GalleryListItem')(function (_React$Compone
                 canDrop = _props.canDrop;
 
 
-            var color = isOver && !canDrop ? 'red' : 'black';
+            var galleryListItemClassName = (0, _aphrodite.css)(styles.galleryListItemText, isOver && canDrop && styles.droppable, isOver && !canDrop && styles.notDroppable);
 
             if (this.state.isEditing) {
                 return _react3.default.createElement(
@@ -860,33 +916,33 @@ var GalleryListItem = _wrapComponent('GalleryListItem')(function (_React$Compone
             } else {
                 return connectDropTarget(_react3.default.createElement(
                     'li',
-                    { className: 'gallery' },
+                    { className: (0, _aphrodite.css)(styles.galleryListItem) },
                     _react3.default.createElement(
-                        'span',
-                        { onClick: this.startEdit, style: { color: color } },
-                        this.state.name
-                    ),
-                    _react3.default.createElement(
-                        _reactRouter.Link,
-                        { to: "/gallery/" + gallery.id },
-                        'Go'
-                    ),
-                    _react3.default.createElement(
-                        _confirm2.default,
-                        {
-                            onConfirm: this.handleDelete,
-                            body: 'Are you sure you want to delete this gallery?',
-                            confirmText: 'Delete',
-                            title: 'Delete Gallery' },
+                        'div',
+                        { className: (0, _aphrodite.css)(styles.galleryListItemText) },
+                        isOver && canDrop && _react3.default.createElement(
+                            'span',
+                            { style: { color: '#29722e' } },
+                            _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'copy' }),
+                            '\xA0'
+                        ),
+                        isOver && !canDrop && _react3.default.createElement(
+                            'span',
+                            { style: { color: '#722929' } },
+                            _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'ban-circle' }),
+                            '\xA0'
+                        ),
                         _react3.default.createElement(
-                            'button',
-                            null,
-                            'Delete'
+                            _reactRouter.Link,
+                            { to: "/gallery/" + gallery.id },
+                            this.state.name,
+                            ' ',
+                            _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'circle-arrow-right' })
                         )
                     ),
                     typeof children !== 'undefined' && _react3.default.createElement(
                         'ul',
-                        null,
+                        { className: (0, _aphrodite.css)(styles.galleryList) },
                         children
                     )
                 ));
@@ -896,6 +952,16 @@ var GalleryListItem = _wrapComponent('GalleryListItem')(function (_React$Compone
 
     return GalleryListItem;
 }(_react3.default.Component));
+
+/* Delete button code
+<Confirm
+    onConfirm={this.handleDelete}
+    body="Are you sure you want to delete this gallery?"
+    confirmText="Delete"
+    title="Delete Gallery">
+    <button>Delete</button>
+</Confirm>
+*/
 
 GalleryListItem.propTypes = {
     gallery: _react2.PropTypes.object.isRequired,
@@ -914,7 +980,33 @@ GalleryListItem = (0, _reactRedux.connect)(function (state, ownProps) {
 
 exports.default = GalleryListItem;
 
-},{"../../../modules/galleries/galleriesactions.js":26,"../../Confirm/confirm":4,"livereactload/babel-transform":251,"lodash":401,"react":779,"react-bootstrap":500,"react-dnd":534,"react-redux":571,"react-router":610}],9:[function(require,module,exports){
+
+var styles = _aphrodite.StyleSheet.create({
+    galleryListItem: {
+        padding: 0,
+        margin: 0,
+        listStyleType: 'none'
+    },
+    galleryListItemText: {
+        padding: 0,
+        margin: 0,
+        lineHeight: 1.8,
+        borderBottom: '1px solid #aaaaaa'
+    },
+    galleryList: {
+        padding: 0,
+        margin: 0,
+        marginLeft: 10
+    },
+    droppable: {
+        backgroundColor: '#eeffee'
+    },
+    notDroppable: {
+        backgroundColor: '#ffeeee'
+    }
+});
+
+},{"../../../modules/galleries/galleriesactions.js":26,"../../Confirm/confirm":4,"aphrodite":34,"livereactload/babel-transform":251,"lodash":401,"react":779,"react-bootstrap":500,"react-dnd":534,"react-redux":571,"react-router":610}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -928,6 +1020,8 @@ var _lodash2 = _interopRequireDefault(_lodash);
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
+
+var _aphrodite = require('aphrodite');
 
 var _gallerylistitem = require('./GalleryListItem/gallerylistitem');
 
@@ -951,7 +1045,7 @@ var GalleryList = function GalleryList(props) {
     });
     return _react2.default.createElement(
         'ul',
-        { className: 'gallery-list' },
+        { className: (0, _aphrodite.css)(styles.galleryList) },
         galleries
     );
 };
@@ -962,7 +1056,18 @@ GalleryList.PropTypes = {
 
 exports.default = GalleryList;
 
-},{"./GalleryListItem/gallerylistitem":8,"lodash":401,"react":779}],10:[function(require,module,exports){
+
+var styles = _aphrodite.StyleSheet.create({
+    galleryList: {
+        padding: 0,
+        paddingTop: 10,
+        paddingBottom: 10,
+        margin: 0,
+        fontSize: 12
+    }
+});
+
+},{"./GalleryListItem/gallerylistitem":8,"aphrodite":34,"lodash":401,"react":779}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -980,6 +1085,10 @@ var _babelTransform2 = _interopRequireDefault(_babelTransform);
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _reactRedux = require('react-redux');
+
+var _aphrodite = require('aphrodite');
+
+var _reactBootstrap = require('react-bootstrap');
 
 var _galleryactions = require('../../../modules/Gallery/galleryactions.js');
 
@@ -1046,23 +1155,27 @@ var GalleryHeader = _wrapComponent('GalleryHeader')(function (_React$Component) 
             if (this.state.isEditing) {
                 return _react3.default.createElement(
                     'div',
-                    { className: 'gallery' },
+                    { className: (0, _aphrodite.css)(styles.galleryHeader) + ' clear' },
                     _react3.default.createElement('input', { type: 'text', value: this.state.name, onChange: this.handleChange }),
                     _react3.default.createElement('input', { type: 'submit', value: 'Change', onClick: this.handleUpdate })
                 );
             } else {
                 return _react3.default.createElement(
                     'div',
-                    { className: 'gallery' },
+                    { className: (0, _aphrodite.css)(styles.galleryHeader) + ' clear' },
                     _react3.default.createElement(
-                        'span',
-                        { onClick: this.startEdit },
+                        'h2',
+                        { className: (0, _aphrodite.css)(styles.galleryHeaderTitle), onClick: this.startEdit },
                         this.props.gallery.name
                     ),
                     _react3.default.createElement(
-                        'a',
-                        { className: 'galleryDelete', onClick: this.handleDelete },
-                        'x'
+                        'div',
+                        { className: (0, _aphrodite.css)(styles.galleryHeaderOptions) },
+                        _react3.default.createElement(
+                            _reactBootstrap.Button,
+                            { bsStyle: 'danger', bsSize: 'small', onClick: this.handleDelete },
+                            _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'trash' })
+                        )
                     )
                 );
             }
@@ -1084,7 +1197,24 @@ GalleryHeader = (0, _reactRedux.connect)(function (state, ownProps) {
 
 exports.default = GalleryHeader;
 
-},{"../../../modules/Gallery/galleryactions.js":22,"livereactload/babel-transform":251,"react":779,"react-redux":571}],11:[function(require,module,exports){
+
+var styles = _aphrodite.StyleSheet.create({
+    galleryHeader: {
+        backgroundColor: '#fcfcfc',
+        borderBottom: '1px solid #f8f8f8',
+        padding: '20px'
+    },
+    galleryHeaderTitle: {
+        float: 'left',
+        paddingTop: '0.25em'
+    },
+    galleryHeaderOptions: {
+        float: 'right',
+        textAlign: 'right'
+    }
+});
+
+},{"../../../modules/Gallery/galleryactions.js":22,"aphrodite":34,"livereactload/babel-transform":251,"react":779,"react-bootstrap":500,"react-redux":571}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1102,6 +1232,10 @@ var _babelTransform2 = _interopRequireDefault(_babelTransform);
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _reactRedux = require('react-redux');
+
+var _aphrodite = require('aphrodite');
+
+var _reactBootstrap = require('react-bootstrap');
 
 var _gallerysortselectactions = require('./gallerysortselectactions');
 
@@ -1142,7 +1276,7 @@ var GallerySortSelector = _wrapComponent('GallerySortSelector')(function (_React
 
         _this.handleChange = function (e) {
             e.preventDefault();
-            _this.props.updateGallerySort(_this.props.gallery.id, _this.refs.gallerySortSelector.value);
+            _this.props.updateGallerySort(_this.props.gallery.id, e.target.value);
             return false;
         };
 
@@ -1155,25 +1289,34 @@ var GallerySortSelector = _wrapComponent('GallerySortSelector')(function (_React
             var props = this.props;
 
             return _react3.default.createElement(
-                'form',
-                null,
+                _reactBootstrap.Form,
+                { inline: true, className: (0, _aphrodite.css)(styles.gallerySortSelect) },
                 _react3.default.createElement(
-                    'select',
-                    { value: props.gallery.sortBy, ref: 'gallerySortSelector', onChange: this.handleChange },
+                    _reactBootstrap.FormGroup,
+                    { bsSize: 'small' },
                     _react3.default.createElement(
-                        'option',
-                        { value: 'date' },
-                        'Photo Date'
+                        _reactBootstrap.ControlLabel,
+                        null,
+                        'Sort:\xA0'
                     ),
                     _react3.default.createElement(
-                        'option',
-                        { value: 'filename' },
-                        'Filename'
-                    ),
-                    !props.gallery.isSet && _react3.default.createElement(
-                        'option',
-                        { value: 'pos' },
-                        'Custom'
+                        _reactBootstrap.FormControl,
+                        { componentClass: 'select', name: 'gallerySortSelector', value: props.gallery.sortBy, ref: 'gallerySortSelector', onChange: this.handleChange },
+                        _react3.default.createElement(
+                            'option',
+                            { value: 'date' },
+                            'Photo Date'
+                        ),
+                        _react3.default.createElement(
+                            'option',
+                            { value: 'filename' },
+                            'Filename'
+                        ),
+                        !props.gallery.isSet && _react3.default.createElement(
+                            'option',
+                            { value: 'pos' },
+                            'Custom'
+                        )
                     )
                 )
             );
@@ -1193,7 +1336,12 @@ GallerySortSelector = (0, _reactRedux.connect)(function (state, ownProps) {
 
 exports.default = GallerySortSelector;
 
-},{"./gallerysortselectactions":12,"livereactload/babel-transform":251,"react":779,"react-redux":571}],12:[function(require,module,exports){
+
+var styles = _aphrodite.StyleSheet.create({
+    gallerySortSelect: {}
+});
+
+},{"./gallerysortselectactions":12,"aphrodite":34,"livereactload/babel-transform":251,"react":779,"react-bootstrap":500,"react-redux":571}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1255,6 +1403,10 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _reactRedux = require('react-redux');
 
+var _aphrodite = require('aphrodite');
+
+var _reactBootstrap = require('react-bootstrap');
+
 var _photogrid = require('../PhotoGrid/photogrid');
 
 var _photogrid2 = _interopRequireDefault(_photogrid);
@@ -1310,7 +1462,34 @@ var GalleryView = _wrapComponent('GalleryView')(function (_React$Component) {
 
         var _this = _possibleConstructorReturn(this, (GalleryView.__proto__ || Object.getPrototypeOf(GalleryView)).call(this, props, context));
 
+        _this.handleFileDragEnter = function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            if (!_lodash2.default.includes(e.dataTransfer.types, 'Files')) {
+                return false;
+            }
+
+            _this.setState({ 'showDropZone': true });
+        };
+
+        _this.handleFileDragOver = function (e) {
+            if (_lodash2.default.includes(e.dataTransfer.types, 'Files')) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        };
+
+        _this.handleFileDragLeave = function (e) {
+            if (!_lodash2.default.isUndefined(e)) {
+                e.preventDefault();
+            }
+
+            _this.setState({ 'showDropZone': false });
+        };
+
         _this.props.loadGallery(props.params.galleryId);
+        _this.state = { 'showDropZone': false };
         return _this;
     }
 
@@ -1342,10 +1521,22 @@ var GalleryView = _wrapComponent('GalleryView')(function (_React$Component) {
 
             return _react3.default.createElement(
                 'div',
-                { id: 'gallery-view' },
+                { className: (0, _aphrodite.css)(styles.galleryView), ref: 'photoDrop', onDragOver: this.handleFileDragOver, onDragEnter: this.handleFileDragEnter },
                 _react3.default.createElement(_galleryheader2.default, { gallery: props.gallery }),
-                _react3.default.createElement(_gallerysortselect2.default, { gallery: props.gallery }),
-                !props.gallery.isSet && _react3.default.createElement(_addphoto2.default, { galleryId: props.gallery.id }),
+                _react3.default.createElement(
+                    'div',
+                    { className: (0, _aphrodite.css)(styles.galleryOptions) + ' clear' },
+                    _react3.default.createElement(
+                        'div',
+                        { className: (0, _aphrodite.css)(styles.left) },
+                        !props.gallery.isSet && _react3.default.createElement(_addphoto2.default, { galleryId: props.gallery.id, showDropZone: this.state.showDropZone, onDragLeave: this.handleFileDragLeave })
+                    ),
+                    _react3.default.createElement(
+                        'div',
+                        { className: (0, _aphrodite.css)(styles.right) },
+                        _react3.default.createElement(_gallerysortselect2.default, { gallery: props.gallery })
+                    )
+                ),
                 _react3.default.createElement(_photogrid2.default, { photos: props.photos, gallery: props.gallery })
             );
         }
@@ -1370,7 +1561,24 @@ GalleryView = (0, _reactRedux.connect)(function (state) {
 
 exports.default = GalleryView;
 
-},{"../../modules/Gallery/galleryactions":22,"../../modules/Photos/photosactions":24,"../AddPhoto/addphoto":2,"../PhotoGrid/photogrid":15,"./GalleryHeader/galleryheader":10,"./GallerySortSelect/gallerysortselect":11,"livereactload/babel-transform":251,"lodash":401,"react":779,"react-redux":571}],14:[function(require,module,exports){
+
+var styles = _aphrodite.StyleSheet.create({
+    galleryView: {
+        position: 'relative',
+        height: '100%'
+    },
+    galleryOptions: {
+        padding: 20
+    },
+    left: {
+        float: 'left'
+    },
+    right: {
+        float: 'right'
+    }
+});
+
+},{"../../modules/Gallery/galleryactions":22,"../../modules/Photos/photosactions":24,"../AddPhoto/addphoto":2,"../PhotoGrid/photogrid":15,"./GalleryHeader/galleryheader":10,"./GallerySortSelect/gallerysortselect":11,"aphrodite":34,"livereactload/babel-transform":251,"lodash":401,"react":779,"react-bootstrap":500,"react-redux":571}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1553,14 +1761,43 @@ var GridThumbnail = _wrapComponent('GridThumbnail')(function (_React$Component) 
         };
 
         _this.toggleSelect = function (e) {
-            e.stopPropagation();
+            /*
+            console.log(e.target.parentNode, e.currentTarget);
+            if (e.target !== e.currentTarget && e.target.parentNode !== e.currentTarget && e.target.parentNode.parentNode !== e.currentTarget) {
+                return false;
+            }
+            */
             _this.props.togglePhotoSelect(_this.props.photo.id);
         };
 
+        _this.showMenu = function (e) {
+            _this.setState({ 'showMenu': true });
+        };
+
+        _this.hideMenu = function (e) {
+            _this.setState({ 'showMenu': false });
+        };
+
+        _this.toggleRemoveConfirm = function (e) {
+            if (!_this.state.showRemoveConfirm) {
+                _this.setState({ 'showRemoveConfirm': true });
+            } else {
+                _this.setState({ 'showRemoveConfirm': false });
+            }
+        };
+
+        _this.state = { 'showMenu': false, 'showRemoveConfirm': false };
         return _this;
     }
 
     _createClass(GridThumbnail, [{
+        key: 'componentWillReceiveProps',
+        value: function componentWillReceiveProps(nextProps) {
+            if (nextProps.isDragging) {
+                this.setState({ 'showMenu': false });
+            }
+        }
+    }, {
         key: 'render',
         value: function render() {
             var _props = this.props,
@@ -1573,24 +1810,47 @@ var GridThumbnail = _wrapComponent('GridThumbnail')(function (_React$Component) 
                 isOver = _props.isOver,
                 canDrop = _props.canDrop;
 
-            var opacity = isDragging ? 0.2 : 1;
-            var border = isDragging && canDrop ? '1px dashed black' : 'none';
 
             return connectDragSource(connectDropTarget(_react3.default.createElement(
                 'div',
-                { className: (0, _aphrodite.css)(styles.photo), style: { opacity: opacity, border: border }, onClick: this.toggleSelect },
-                _react3.default.createElement(_thumbnail2.default, { photo: photo }),
-                _react3.default.createElement(
-                    _confirm2.default,
-                    {
-                        onConfirm: this.handleDelete,
-                        body: 'Are you sure you want to delete this photo?',
-                        confirmText: 'Delete',
-                        title: 'Delete Photo' },
+                { className: (0, _aphrodite.css)(styles.photo), onMouseEnter: this.showMenu, onMouseLeave: this.hideMenu },
+                _react3.default.createElement(_thumbnail2.default, { photo: photo, isDragging: isDragging, canDrop: canDrop, onImageClick: this.toggleSelect }),
+                _react3.default.createElement(_confirm2.default, {
+                    show: this.state.showRemoveConfirm,
+                    onConfirm: this.handleDelete,
+                    onCancel: this.toggleRemoveConfirm,
+                    showActionButton: false,
+                    body: 'Are you sure you want to remove this photo from this gallery?',
+                    confirmText: 'Remove',
+                    title: 'Remove Photo from Gallery' }),
+                this.state.showMenu && _react3.default.createElement(
+                    'div',
+                    { className: (0, _aphrodite.css)(styles.photoMenu) },
                     _react3.default.createElement(
-                        _reactBootstrap.Button,
-                        { className: (0, _aphrodite.css)(styles.photoDeleteButton) },
-                        'X'
+                        _reactBootstrap.ButtonToolbar,
+                        null,
+                        _react3.default.createElement(
+                            _reactBootstrap.Dropdown,
+                            { id: 'dropdown-custom-' + photo.id, pullRight: true },
+                            _react3.default.createElement(
+                                _reactBootstrap.Dropdown.Toggle,
+                                { bsSize: 'xsmall' },
+                                _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'tasks' })
+                            ),
+                            _react3.default.createElement(
+                                _reactBootstrap.Dropdown.Menu,
+                                null,
+                                _react3.default.createElement(
+                                    _reactBootstrap.MenuItem,
+                                    { eventKey: '1' },
+                                    _react3.default.createElement(
+                                        'span',
+                                        { onClick: this.toggleRemoveConfirm },
+                                        'Remove from Gallery'
+                                    )
+                                )
+                            )
+                        )
                     )
                 )
             )), { dropEffect: 'move' });
@@ -1626,25 +1886,21 @@ var styles = _aphrodite.StyleSheet.create({
     photo: {
         position: 'relative',
         float: 'left',
-        marginRight: '10px',
+        marginTop: 0,
+        marginLeft: 0,
+        marginRight: 10,
+        marginBottom: 10,
         ':focus': {
             outline: 'none',
-            boxShadow: 'none',
-            border: '1px solid black'
+            boxShadow: 'none'
         }
     },
-    photoDeleteButton: {
+    photoMenu: {
         position: 'absolute',
-        width: 20,
-        height: 20,
         top: 10,
-        right: 10,
-        backgroundColor: '#880000',
-        border: '1px solid #aaaaaa',
-        color: 'white',
-        textAlign: 'center',
-        cursor: 'pointer'
-    }
+        right: 10
+    },
+    photoDeleteButton: {}
 });
 
 },{"../../../modules/Photos/photosactions":24,"../../Confirm/confirm":4,"../../Thumbnail/thumbnail":19,"../photogridactions":16,"aphrodite":34,"livereactload/babel-transform":251,"lodash":401,"react":779,"react-bootstrap":500,"react-dnd":534,"react-dom":543,"react-redux":571}],15:[function(require,module,exports){
@@ -1653,7 +1909,6 @@ var styles = _aphrodite.StyleSheet.create({
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.PhotoGrid = undefined;
 
 var _react2 = require('react');
 
@@ -1740,22 +1995,32 @@ var PhotoGrid = _wrapComponent('PhotoGrid')((_temp = _class = function (_React$C
 
             var canSort = true;
             var cannotSortDialogBody = '';
-            if (props.gallery.isSet) {
+            if (_lodash2.default.isUndefined(props.gallery)) {
                 canSort = false;
-                cannotSortDialogBody = 'Photos cannot be custom sorted in a gallery set. You can sort them in the individual gallery.';
+                cannotSortDialogBody = 'Photos cannot be custom sorted in the All Photos view';
+            } else {
+                if (props.gallery.isSet) {
+                    canSort = false;
+                    cannotSortDialogBody = 'Photos cannot be custom sorted in a gallery set. You can sort them in the individual gallery.';
+                }
+                if (!props.gallery.isSet && props.gallery.sortBy !== 'pos') {
+                    canSort = false;
+                    cannotSortDialogBody = 'You must change the sort order for this gallery to "custom" before manually sorting.';
+                }
             }
-            if (!props.gallery.isSet && props.gallery.sortBy !== 'pos') {
-                canSort = false;
-                cannotSortDialogBody = 'You must change the sort order for this gallery to "custom" before manually sorting.';
+
+            var galleryId = void 0;
+            if (!_lodash2.default.isUndefined(props.gallery)) {
+                galleryId = props.gallery.id;
             }
 
             var photos = props.photos.map(function (photo, i) {
-                return _react3.default.createElement(_gridthumbnail2.default, { key: photo.id, galleryId: props.gallery.id, photo: photo, i: i, canSort: canSort });
+                return _react3.default.createElement(_gridthumbnail2.default, { key: photo.id, galleryId: galleryId, photo: photo, i: i, canSort: canSort });
             });
 
             return _react3.default.createElement(
                 'div',
-                { className: (0, _aphrodite.css)(styles.photoGrid), tabIndex: '0', onKeyUp: this.handleDeleteKeyPress },
+                { className: (0, _aphrodite.css)(styles.photoGrid) + ' clear', tabIndex: '0', onKeyUp: this.handleDeleteKeyPress },
                 _react3.default.createElement(_confirm2.default, {
                     onConfirm: this.handleDelete,
                     onCancel: this.handleDeleteDialogCancel,
@@ -1854,9 +2119,6 @@ var PhotoGrid = _wrapComponent('PhotoGrid')((_temp = _class = function (_React$C
     };
 }, _temp));
 
-exports.PhotoGrid = PhotoGrid;
-
-
 PhotoGrid.PropTypes = {
     photos: _react2.PropTypes.array.isRequired,
     gallery: _react2.PropTypes.object,
@@ -1873,6 +2135,7 @@ exports.default = (0, _reactRedux.connect)(function (state) {
 
 var styles = _aphrodite.StyleSheet.create({
     photoGrid: {
+        padding: '15px',
         ':focus': {
             outline: 'none',
             boxShadow: 'none'
@@ -1969,6 +2232,8 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _reactRedux = require('react-redux');
 
+var _aphrodite = require('aphrodite');
+
 var _photogrid = require('../PhotoGrid/photogrid');
 
 var _photogrid2 = _interopRequireDefault(_photogrid);
@@ -2021,13 +2286,13 @@ var PhotosView = _wrapComponent('PhotosView')(function (_React$Component) {
 
             return _react3.default.createElement(
                 'div',
-                { id: 'gallery-view' },
+                { className: (0, _aphrodite.css)(styles.allPhotosView) },
                 _react3.default.createElement(
                     'div',
-                    { className: 'gallery' },
+                    { className: (0, _aphrodite.css)(styles.allPhotosHeader) + ' clear' },
                     _react3.default.createElement(
-                        'span',
-                        null,
+                        'h2',
+                        { className: (0, _aphrodite.css)(styles.allPhotosHeaderTitle) },
                         'All Photos'
                     )
                 ),
@@ -2049,7 +2314,23 @@ exports.default = (0, _reactRedux.connect)(function (state) {
     };
 }, { loadAllPhotos: _photosactions.loadAllPhotos })(PhotosView);
 
-},{"../../modules/Photos/photosactions":24,"../PhotoGrid/photogrid":15,"livereactload/babel-transform":251,"lodash":401,"react":779,"react-redux":571}],19:[function(require,module,exports){
+
+var styles = _aphrodite.StyleSheet.create({
+    allPhotosView: {
+        position: 'relative'
+    },
+    allPhotosHeader: {
+        backgroundColor: '#fcfcfc',
+        borderBottom: '1px solid #f8f8f8',
+        padding: '20px'
+    },
+    allPhotosHeaderTitle: {
+        float: 'left',
+        paddingTop: '0.25em'
+    }
+});
+
+},{"../../modules/Photos/photosactions":24,"../PhotoGrid/photogrid":15,"aphrodite":34,"livereactload/babel-transform":251,"lodash":401,"react":779,"react-redux":571}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2060,30 +2341,72 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _aphrodite = require('aphrodite');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var Thumbnail = function Thumbnail(_ref) {
-    var photo = _ref.photo;
+    var photo = _ref.photo,
+        isDragging = _ref.isDragging,
+        canDrop = _ref.canDrop,
+        onImageClick = _ref.onImageClick;
 
-    var style = void 0;
-    if (photo.isSelected) {
-        style = { border: '1px solid black' };
-    }
+
+    var className = (0, _aphrodite.css)(styles.thumbnail, photo.isSelected && styles.selected, isDragging && styles.dragging, isDragging && !canDrop && styles.notDroppable, isDragging && canDrop && styles.droppable);
 
     return _react2.default.createElement(
         'div',
-        { style: style },
-        _react2.default.createElement('img', { 'data-id': photo.id, src: '/images/photos/' + photo.sizes.thumb.uri, alt: photo.fn })
+        { className: className },
+        _react2.default.createElement('img', { 'data-id': photo.id, src: '/images/photos/' + photo.sizes.thumb.uri, alt: photo.fn, onClick: onImageClick })
     );
 };
 
 Thumbnail.PropTypes = {
-    photo: _react.PropTypes.object.isRequired
+    photo: _react.PropTypes.object.isRequired,
+    isDragging: _react.PropTypes.bool,
+    canDrop: _react.PropTypes.bool,
+    onImageClick: _react.PropTypes.func
 };
 
 exports.default = Thumbnail;
 
-},{"react":779}],20:[function(require,module,exports){
+
+var styles = _aphrodite.StyleSheet.create({
+    thumbnail: {
+        border: '1px solid #ccc',
+        padding: 5,
+        WebkitBorderRadius: 5,
+        MozBorderRadius: 5,
+        borderRadius: 5,
+        ':hover': {
+            border: '1px solid #333'
+        },
+        ':active': {
+            border: '1px solid #333'
+        }
+    },
+    selected: {
+        border: '1px solid #006dcc',
+        backgroundColor: '#eee'
+    },
+    dragging: {
+        opacity: 0.2
+    },
+    notDroppable: {
+        border: '1px dashed red'
+    },
+    droppable: {
+        border: '1px dashed black',
+        ':hover': {
+            border: '1px dashed black'
+        },
+        ':active': {
+            border: '1px dashed black'
+        }
+    }
+});
+
+},{"aphrodite":34,"react":779}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2102,9 +2425,9 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _reactRouter = require('react-router');
 
-var _aphrodite = require('aphrodite');
-
 var _reactDnd = require('react-dnd');
+
+var _reactBootstrap = require('react-bootstrap');
 
 var _reactDndHtml5Backend = require('react-dnd-html5-backend');
 
@@ -2154,22 +2477,35 @@ var AppView = _wrapComponent('AppView')(function (_React$Component) {
                 sidebar = _props.sidebar;
 
             return _react3.default.createElement(
-                'div',
-                null,
+                _reactBootstrap.Grid,
+                { fluid: true },
                 _react3.default.createElement(
-                    'div',
-                    { className: (0, _aphrodite.css)(styles.sidebar) },
+                    _reactBootstrap.Row,
+                    { className: 'row-full-height' },
                     _react3.default.createElement(
-                        _reactRouter.Link,
-                        { to: "/photos" },
-                        'All Photos'
+                        _reactBootstrap.Col,
+                        { sm: 3, className: 'sidebar' },
+                        _react3.default.createElement(
+                            _reactRouter.Link,
+                            { to: "/" },
+                            _react3.default.createElement('img', { className: 'logo', src: '/images/gb_logo.png', alt: 'Garkbit' })
+                        ),
+                        _react3.default.createElement(
+                            'h3',
+                            null,
+                            _react3.default.createElement(
+                                _reactRouter.Link,
+                                { to: "/photos" },
+                                'All Photos'
+                            )
+                        ),
+                        sidebar
                     ),
-                    sidebar
-                ),
-                _react3.default.createElement(
-                    'div',
-                    { className: (0, _aphrodite.css)(styles.content) },
-                    content
+                    _react3.default.createElement(
+                        _reactBootstrap.Col,
+                        { sm: 9, className: 'content' },
+                        content
+                    )
                 )
             );
         }
@@ -2180,20 +2516,7 @@ var AppView = _wrapComponent('AppView')(function (_React$Component) {
 
 exports.default = (0, _reactDnd.DragDropContext)(_reactDndHtml5Backend2.default)(AppView);
 
-
-var styles = _aphrodite.StyleSheet.create({
-    sidebar: {
-        float: 'left',
-        width: '20%'
-    },
-
-    content: {
-        float: 'left',
-        width: '80%'
-    }
-});
-
-},{"aphrodite":34,"livereactload/babel-transform":251,"react":779,"react-dnd":534,"react-dnd-html5-backend":520,"react-router":610}],21:[function(require,module,exports){
+},{"livereactload/babel-transform":251,"react":779,"react-bootstrap":500,"react-dnd":534,"react-dnd-html5-backend":520,"react-router":610}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2534,7 +2857,7 @@ var didUpdatePhoto = function didUpdatePhoto(id, name) {
 var didDeletePhoto = function didDeletePhoto(id) {
     return { type: 'DELETE_PHOTO', id: id };
 };
-var didTogglePhotoSelect = function didTogglePhotoSelect() {
+var didTogglePhotoSelect = function didTogglePhotoSelect(id) {
     return { type: 'TOGGLE_PHOTO_SELECT', id: id };
 };
 var didSortPhoto = function didSortPhoto(id, targetId) {

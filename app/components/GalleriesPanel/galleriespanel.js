@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { StyleSheet, css } from 'aphrodite';
-import { Button } from 'react-bootstrap';
+import { Button, Glyphicon } from 'react-bootstrap';
 import { toggleAddGalleryModal } from './galleriespanelactions';
 import AddGallery from '../AddGallery/addgallery';
 import GalleryList from '../GalleryList/gallerylist';
@@ -24,10 +24,11 @@ class GalleriesPanel extends React.Component {
     render () {
         const props = this.props;
         return (
-            <div id="gallery-panel">
-                <h1>Galleries</h1>
-                <Button bsStyle="primary" bsSize="small" onClick={this.handleButtonClick} id="addGallerySetButton">Add Gallery Set</Button>
-                <Button bsStyle="primary" bsSize="small" onClick={this.handleButtonClick} id="addGalleryButton">Add Gallery</Button>
+            <div>
+                <h3>Galleries</h3>
+                <Button bsStyle="primary" bsSize="xsmall" onClick={this.handleButtonClick} id="addGalleryButton"><Glyphicon glyph="plus-sign" /> Gallery</Button>
+                {' '}
+                <Button bsStyle="primary" bsSize="xsmall" onClick={this.handleButtonClick} id="addGallerySetButton"><Glyphicon glyph="plus-sign" /> Gallery Set</Button>
                 <AddGallery galleries={props.galleries} show={props.galleriesPanel.showAddGalleryModal} addSet={props.galleriesPanel.addSet} onHide={props.toggleAddGalleryModal} />
                 <GalleryList data={props.galleries} />
             </div>

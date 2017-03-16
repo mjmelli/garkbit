@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import { findDOMNode } from 'react-dom';
 import { connect } from 'react-redux';
 import { StyleSheet, css } from 'aphrodite';
-import { Button, Modal } from 'react-bootstrap';
+import { Button, Modal, Glyphicon, ButtonToolbar, Dropdown, MenuItem } from 'react-bootstrap';
 import { DragSource, DropTarget } from 'react-dnd';
 import Thumbnail from '../../Thumbnail/thumbnail';
 import Confirm from '../../Confirm/confirm';
@@ -111,6 +111,13 @@ function collectPhotoTarget(connect, monitor) {
 class GridThumbnail extends React.Component {
     constructor (props) {
         super(props);
+        this.state = { 'showMenu': false, 'showRemoveConfirm': false };
+    }
+
+    componentWillReceiveProps (nextProps) {
+        if (nextProps.isDragging) {
+            this.setState({ 'showMenu': false });
+        }
     }
 
     handleDelete = (e) => {
@@ -118,25 +125,60 @@ class GridThumbnail extends React.Component {
     }
 
     toggleSelect = (e) => {
-        e.stopPropagation();
+        /*
+        console.log(e.target.parentNode, e.currentTarget);
+        if (e.target !== e.currentTarget && e.target.parentNode !== e.currentTarget && e.target.parentNode.parentNode !== e.currentTarget) {
+            return false;
+        }
+        */
         this.props.togglePhotoSelect(this.props.photo.id);
+    }
+
+    showMenu = (e) => {
+        this.setState({ 'showMenu': true });
+    }
+
+    hideMenu = (e) => {
+        this.setState({ 'showMenu': false });
+    }
+
+    toggleRemoveConfirm = (e) => {
+        if (!this.state.showRemoveConfirm) {
+            this.setState({ 'showRemoveConfirm': true });
+        } else {
+            this.setState({ 'showRemoveConfirm': false });
+        }
     }
 
     render() {
         const { galleryId, photo, i, connectDragSource, connectDropTarget, isDragging, isOver, canDrop } = this.props;
-        const opacity = isDragging ? 0.2 : 1;
-        const border = (isDragging && canDrop) ? '1px dashed black' : 'none';
 
         return connectDragSource(connectDropTarget(
-            <div className={css(styles.photo)} style={{ opacity, border }} onClick={this.toggleSelect}>
-                <Thumbnail photo={photo} />
+            <div className={css(styles.photo)} onMouseEnter={this.showMenu} onMouseLeave={this.hideMenu}>
+                <Thumbnail photo={photo} isDragging={isDragging} canDrop={canDrop} onImageClick={this.toggleSelect} />
                 <Confirm
+                    show={this.state.showRemoveConfirm}
                     onConfirm={this.handleDelete}
-                    body="Are you sure you want to delete this photo?"
-                    confirmText="Delete"
-                    title="Delete Photo">
-                    <Button className={css(styles.photoDeleteButton)}>X</Button>
+                    onCancel={this.toggleRemoveConfirm}
+                    showActionButton={false}
+                    body="Are you sure you want to remove this photo from this gallery?"
+                    confirmText="Remove"
+                    title="Remove Photo from Gallery">
                 </Confirm>
+                {this.state.showMenu &&
+                    <div className={css(styles.photoMenu)}>
+                        <ButtonToolbar>
+                            <Dropdown id={`dropdown-custom-${photo.id}`} pullRight>
+                                <Dropdown.Toggle bsSize="xsmall">
+                                    <Glyphicon glyph="tasks" />
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu>
+                                    <MenuItem eventKey="1"><span onClick={this.toggleRemoveConfirm}>Remove from Gallery</span></MenuItem>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </ButtonToolbar>
+                    </div>
+                }
             </div>
         ), { dropEffect: 'move' });
     }
@@ -168,23 +210,20 @@ const styles = StyleSheet.create({
     photo: {
         position: 'relative',
         float: 'left',
-        marginRight: '10px',
+        marginTop: 0,
+        marginLeft: 0,
+        marginRight: 10,
+        marginBottom: 10,
         ':focus': {
             outline: 'none',
             boxShadow: 'none',
-            border: '1px solid black',
         }
     },
-    photoDeleteButton: {
+    photoMenu: {
         position: 'absolute',
-        width: 20,
-        height: 20,
         top: 10,
         right: 10,
-        backgroundColor: '#880000',
-        border: '1px solid #aaaaaa',
-        color: 'white',
-        textAlign: 'center',
-        cursor: 'pointer',
+    },
+    photoDeleteButton: {
     },
 });

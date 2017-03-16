@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
+import { StyleSheet, css } from 'aphrodite';
+import { Button, Modal, Glyphicon } from 'react-bootstrap';
 import { updateGallery, deleteGallery } from '../../../modules/Gallery/galleryactions.js';
 
 class GalleryHeader extends React.Component {
@@ -29,16 +31,18 @@ class GalleryHeader extends React.Component {
     render () {
         if (this.state.isEditing) {
             return (
-                <div className="gallery">
+                <div className={css(styles.galleryHeader) + ' clear'}>
                     <input type="text" value={this.state.name} onChange={this.handleChange} />
                     <input type="submit" value="Change" onClick={this.handleUpdate} />
                 </div>
             );
         } else {
             return (
-                <div className="gallery">
-                    <span onClick={this.startEdit}>{this.props.gallery.name}</span>
-                    <a className="galleryDelete" onClick={this.handleDelete}>x</a>
+                <div className={css(styles.galleryHeader) + ' clear'}>
+                    <h2 className={css(styles.galleryHeaderTitle)} onClick={this.startEdit}>{this.props.gallery.name}</h2>
+                    <div className={css(styles.galleryHeaderOptions)}>
+                        <Button bsStyle="danger" bsSize="small" onClick={this.handleDelete}><Glyphicon glyph="trash"/></Button>
+                    </div>
                 </div>
             );
         }
@@ -57,3 +61,19 @@ GalleryHeader = connect(
 )(GalleryHeader);
 
 export default GalleryHeader;
+
+const styles = StyleSheet.create({
+    galleryHeader: {
+        backgroundColor: '#fcfcfc',
+        borderBottom: '1px solid #f8f8f8',
+        padding: '20px',
+    },
+    galleryHeaderTitle: {
+        float: 'left',
+        paddingTop: '0.25em',
+    },
+    galleryHeaderOptions: {
+        float: 'right',
+        textAlign: 'right',
+    }
+});

@@ -2,7 +2,71 @@ html, body {
     position: relative;
     height: 100%;
     min-height: 100%;
-    font-family: arial, sans-serif;
+    font-family: 'Roboto', helvetica, sans-serif;
+}
+
+a {
+    color: #3d5591;
+}
+
+a:focus, a:hover {
+    color: #6f95c1;
+    text-decoration: none;
+}
+
+h1, h2, h3 {
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+h1 {
+    font-size: 30px;
+}
+
+h2 {
+    font-size: 24px;
+    margin: 0;
+    padding: 0;
+}
+
+h3 {
+    font-size: 20px;
+}
+
+#app {
+    height: 100%;
+}
+
+.container, .container-fluid, .row-full-height {
+    height: 100%;
+}
+
+.sidebar {
+    position: fixed;
+    height: 100%;
+    min-height: 100%;
+    background-color: #dddddd;
+    border-right: 5px solid #888888;
+    padding: 0;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-left: 10px;
+    overflow-y: auto;
+}
+
+.content {
+    height: 100%;
+    margin-left: 25%;
+    padding: 0;
+}
+
+.logo {
+    display: block;
+    margin-bottom: 20px;
+}
+
+.thumbnail {
+    //width: 150px;
 }
 
 .gallery-form {
@@ -11,17 +75,23 @@ html, body {
 .gallery {
     padding-bottom: 10px;
 }
-.gb-inline-gallery {
+
+.gb_inline-gallery {
     display: block;
-    clear: both;
     width: 100%;
 }
-.gb-thumbnail-wrapper {
+.gb_thumbnail-wrapper {
     float: left;
     border: 1px solid black;
     margin: 5px;
 }
-.gb-thumbnail-wrapper img {
+.gb_thumbnail-wrapper img {
     display: block;
     margin: 0;
+}
+
+.clear:after {
+    content: "";
+    display: block;
+    clear: both;
 }

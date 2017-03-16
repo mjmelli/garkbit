@@ -1,9 +1,12 @@
 doctype
 html
     head
-        title Garkbit
-        link(rel='stylesheet', href='/styles/main.css')
+        title Garkbit - Gallery Management
+
+        link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Roboto')
         link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css')
+        link(rel='stylesheet', href='/styles/main.css')
+
         meta(charset='utf-8')
         meta(http-equiv='X-UA-Compatible', content='IE=edge')
 
@@ -13,7 +16,6 @@ html
         style(data-aphrodite type="text/css").
             #{css.content}
     body
-        h1 Garkbit
         #app!= content
         script(type='text/javascript').
             window.__INITIAL_STATE__ = !{JSON.stringify(initialState)};
