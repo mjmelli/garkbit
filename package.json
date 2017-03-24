@@ -33,6 +33,7 @@
     "install": "^0.8.1",
     "isomorphic-fetch": "^2.2.1",
     "lodash": "^4.15.0",
+    "mmmagic": "^0.4.5",
     "mongodb": "^2.2.9",
     "multer": "^1.2.0",
     "photoswipe": "^4.1.1",

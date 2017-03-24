@@ -33,10 +33,18 @@ var getGalleryPhotos = function getGalleryPhotos(galleryId) {
         }).then(function (json) {
             var photos = json.photos;
             garkbitPhotos[galleryId] = photos.map(function (photo) {
-                return { id: galleryId + '-' + photo.id, src: '/images/photos/' + photo.sizes.original.uri, w: photo.sizes.original.width, h: photo.sizes.original.height };
+                return {
+                    id: galleryId + '-' + photo.id,
+                    src: '/images/photos/' + photo.sizes.original.uri,
+                    msrc: '/images/photos/' + photo.sizes.thumb.uri,
+                    w: photo.sizes.original.width,
+                    h: photo.sizes.original.height,
+                    title: photo.caption,
+                    exif: photo.exif
+                };
             });
             garkbitGalleries.push(galleryId);
-            var galleryNode = document.getElementById('gb-' + galleryId);
+            var galleryNode = document.getElementById('gb_' + galleryId);
             photos.forEach(function (photo, i) {
                 var thumbNode = document.createElement("div");
                 thumbNode.className = 'gb_thumbnail-wrapper';
@@ -74,7 +82,6 @@ var openPhotoSwipe = function openPhotoSwipe(photoId, galleryId) {
         index: parseInt(index, 10),
         //showHideOpacity: true,
         getThumbBoundsFn: function getThumbBoundsFn(index) {
-            //var thumbnail = document.getElementById('gb-' + galleryId).getElementsByTagName('img')[index],
             var thumbnail = document.querySelectorAll("[data-id='" + photoId + "']")[0],
                 pageYScroll = window.pageYOffset || document.documentElement.scrollTop,
                 rect = thumbnail.getBoundingClientRect();
@@ -82,15 +89,15 @@ var openPhotoSwipe = function openPhotoSwipe(photoId, galleryId) {
         }
     };
 
-    //const galleryItems = items[galleryId];
-
-
     var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, galleryItems, options);
     gallery.init();
 };
 
 function garkbitInit() {
-    var gbGalleryElements = document.querySelectorAll('.gb_inline-gallery');
+    var gbGalleryElements = document.querySelectorAll('.garkbit');
+    gbGalleryElements.forEach(function (e) {
+        e.className = e.className + ' gb_inline-gallery clear';
+    });
     var gbGalleries = [].concat(_toConsumableArray(gbGalleryElements));
     var galleryIds = gbGalleries.map(getGalleryIdFromElement);
     /* Run in series to preserve indexes */

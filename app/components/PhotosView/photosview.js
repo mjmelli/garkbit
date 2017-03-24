@@ -3,12 +3,17 @@ import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { StyleSheet, css } from 'aphrodite';
 import PhotoGrid from '../PhotoGrid/photogrid';
-import { loadAllPhotos } from '../../modules/Photos/photosactions';
+import { loadAllPhotos, unloadPhotos } from '../../modules/Photos/photosactions';
 
 class PhotosView extends React.Component {
     constructor (props) {
         super(props);
         props.loadAllPhotos();
+    }
+
+    componentWillUnmount() {
+        // Unload the gallery to force a reload when we navigate away (someplace outside of galleries) and then back to this gallery
+        this.props.unloadPhotos();
     }
 
     render () {
@@ -36,7 +41,7 @@ export default connect(
             photos: state.photos,
         };
     },
-    { loadAllPhotos }
+    { loadAllPhotos, unloadPhotos }
 )(PhotosView);
 
 const styles = StyleSheet.create({

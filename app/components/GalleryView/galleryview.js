@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { StyleSheet, css } from 'aphrodite';
-import { Row, Col } from 'react-bootstrap';
+import { Button, Modal, OverlayTrigger, Popover, Row, Col, FormControl } from 'react-bootstrap';
 import PhotoGrid from '../PhotoGrid/photogrid';
 import AddPhoto from '../AddPhoto/addphoto';
 import GallerySortSelect from './GallerySortSelect/gallerysortselect';
@@ -43,7 +43,7 @@ class GalleryView extends React.Component {
         e.stopPropagation();
         e.preventDefault();
 
-        if (!_.includes(e.dataTransfer.types, 'Files')) {
+        if (this.props.gallery.isSet || !_.includes(e.dataTransfer.types, 'Files')) {
             return false;
         }
 
@@ -68,14 +68,27 @@ class GalleryView extends React.Component {
     render () {
         const props = this.props;
 
+        const embedLink = '<div class="garkbit" id="gb_' + props.gallery.id + '"></div>';
+
+        const embedPop = (
+            <Popover id="embedCode" title="Embed Code" bsStyle={css(styles.overlay)}>
+                <div className={css(styles.embedLinkBox)}>{embedLink}</div>
+            </Popover>
+        );
+
         return (
             <div className={css(styles.galleryView)} ref="photoDrop" onDragOver={this.handleFileDragOver} onDragEnter={this.handleFileDragEnter}>
                 <GalleryHeader gallery={props.gallery} />
                 <div className={css(styles.galleryOptions) + ' clear'}>
-                    <div className={css(styles.left)}>
-                        {!props.gallery.isSet &&
+                    {!props.gallery.isSet &&
+                        <div className={css(styles.left)} style={{ marginRight: 10 }}>
                             <AddPhoto galleryId={props.gallery.id} showDropZone={this.state.showDropZone} onDragLeave={this.handleFileDragLeave} />
-                        }
+                        </div>
+                    }
+                    <div className={css(styles.left)}>
+                        <OverlayTrigger trigger="click" rootClose placement="bottom" overlay={embedPop}>
+                            <Button bsSize="small">Get Embed Code</Button>
+                        </OverlayTrigger>
                     </div>
                     <div className={css(styles.right)}>
                         <GallerySortSelect gallery={props.gallery} />
@@ -107,12 +120,20 @@ GalleryView = connect(
 export default GalleryView;
 
 const styles = StyleSheet.create({
+    overlay: {
+        width: 400,
+    },
     galleryView: {
         position: 'relative',
         height: '100%',
     },
     galleryOptions: {
         padding: 20,
+    },
+    embedLinkBox: {
+        border: '1px solid #888888',
+        backgroundColor: '#eeeeee',
+        padding: 4,
     },
     left: {
         float: 'left',

@@ -5,6 +5,8 @@ import _ from 'lodash';
 export const addPhoto = (files, galleryId) => {
     return dispatch => {
 
+        dispatch(startUpload());
+
         let formData = new FormData();
         _.each(files, (f) => {
             formData.append('photo', f);
@@ -16,7 +18,14 @@ export const addPhoto = (files, galleryId) => {
             body: formData,
         })
         .then(response => response.json())
-        .then(json => dispatch(didAddPhoto(json.photos)))
+        .then(json => {
+            dispatch(endUpload());
+            if (json.error) {
+                dispatch(addPhotoError(json.error));
+            }
+            dispatch(didAddPhoto(json.photos));
+            return;
+        })
         .catch(function(e) {
             console.log('--Add Photo--');
             console.log(e);
@@ -25,3 +34,6 @@ export const addPhoto = (files, galleryId) => {
 }
 
 const didAddPhoto = (photos) => ({ type: 'ADD_PHOTO', photos });
+const addPhotoError = (error) => ({ type: 'ADD_PHOTO_ERROR', error });
+const startUpload = () => ({ type: 'START_UPLOAD' });
+const endUpload = () => ({ type: 'END_UPLOAD' });

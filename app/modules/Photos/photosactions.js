@@ -29,6 +29,10 @@ export const loadPhotosByGallery = (galleryId) => {
     }
 }
 
+export const unloadPhotos = () => {
+    return dispatch => { dispatch(didUnloadPhotos()) }
+}
+
 export const updatePhoto = (id, name) => {
     return dispatch => {
         return Fetch(Config.API_URL + '/galleries/' + id, {
@@ -53,6 +57,21 @@ export const deletePhoto = (id) => {
         })
         .then(response => response.json())
         .then(json => dispatch(didDeletePhoto(id)))
+        .catch(function(e) {
+            console.log('--Delete Photo--');
+            console.log(e);
+        })
+    }
+}
+
+export const removePhotoFromGallery = (galleryId, photoId) => {
+    return dispatch => {
+        return Fetch(Config.API_URL + '/galleries/' + galleryId + '/photo/' + photoId, {
+            method: 'DELETE',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
+        })
+        .then(response => response.json())
+        .then(json => dispatch(didRemovePhoto(photoId)))
         .catch(function(e) {
             console.log('--Delete Photo--');
             console.log(e);
@@ -89,8 +108,10 @@ export const movePhoto = (dragIndex, hoverIndex) => {
 */
 
 const didLoadPhotos = (photos) => ({ type: 'LOAD_PHOTOS', photos });
+const didUnloadPhotos = () => ({ type: 'UNLOAD_PHOTOS' });
 const didUpdatePhoto = (id, name) => ({ type: 'UPDATE_PHOTO', id, name });
 const didDeletePhoto = (id) => ({ type: 'DELETE_PHOTO', id });
+const didRemovePhoto = (id) => ({ type: 'DELETE_PHOTO', id });
 const didTogglePhotoSelect = (id) => ({ type: 'TOGGLE_PHOTO_SELECT', id });
 const didSortPhoto = (id, targetId) => ({ type: 'SORT_PHOTO', id, targetId });
 const didMovePhoto = (dragIndex, hoverIndex) => ({ type: 'MOVE_PHOTO', dragIndex, hoverIndex });

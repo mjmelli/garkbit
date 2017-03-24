@@ -8,6 +8,7 @@ import Crypto from 'crypto';
 import FS from 'fs';
 import Sharp from 'sharp';
 import Exif from 'exif-reader';
+import mmm, { Magic }  from 'mmmagic';
 
 import React from 'react';
 import { Provider } from 'react-redux';
@@ -46,7 +47,7 @@ const storage = Multer.diskStorage({
     },
     filename: function (req, file, cb) {
         return cb(null, file.originalname);
-    }
+    },
 })
 
 const upload = Multer({ storage: storage });
@@ -271,8 +272,6 @@ app.post('/api/galleries/:id', urlEncodedParser, function(req, res) {
 */
 app.delete('/api/galleries/:id', function(req, res) {
 
-    // TODO: Remove gallery id from all photos
-
     const galleryId = req.params.id;
 
     const removeGallery = (galleryId) => {
@@ -296,7 +295,7 @@ app.delete('/api/galleries/:id', function(req, res) {
                 db.collection('galleries').updateOne({
                     '_id': DB.objectId(parentId)
                 }, {
-                    '$pull': {'children': DB.objectId(galleryId)}
+                    '$pull': { 'children': DB.objectId(galleryId) }
                 }, function (err, result) {
                     if (err) return reject(err);
                     return resolve(result);
@@ -312,7 +311,7 @@ app.delete('/api/galleries/:id', function(req, res) {
                 db.collection('photos').update({
                     'gallery.id': DB.objectId(galleryId)
                 }, {
-                    '$pull': {'galleries': {'id': DB.objectId(galleryId)}}
+                    '$pull': { 'galleries': { 'id': DB.objectId(galleryId) }}
                 }, function (err, result) {
                     if (err) return reject(err);
                     return resolve(result);
@@ -348,30 +347,6 @@ app.delete('/api/galleries/:id', function(req, res) {
         .catch(err => {
             return res.json({'err': err});
         });
-
-        /*
-    DB.connect(function (err, db) {
-        if (err) return res.json({'err': err});
-        db.collection('galleries').findOneAndDelete({
-            '_id': DB.objectId(galleryId)
-        }, function (err, result) {
-            if (err) return res.json({'err': err});
-            let gallery = result.value;
-            if (!_.isEmpty(gallery.parentId)) {
-                db.collection('galleries').updateOne({
-                    '_id': gallery.parentId
-                }, {
-                    '$pull': {'children': DB.objectId(galleryId)}
-                }, function (err, result) {
-                    if (err) return res.json({'err': err});
-                    return res.json({'success': true});
-                });
-            } else {
-                return res.json({'success': true});
-            }
-        });
-    });
-    */
 });
 
 /*
@@ -544,6 +519,21 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
 
     const galleryId = req.body.galleryId;
     const files = req.files;
+
+    const validateFile = (file) => {
+        return new Promise(function(resolve, reject) {
+            const magic = new Magic(mmm.MAGIC_MIME_TYPE);
+            magic.detectFile(file.path, function (err, result) {
+                if (err) return reject(err);
+                if (result === 'image/jpeg') {
+                    file.isValid = true;
+                } else {
+                    file.isValid = false;
+                }
+                return resolve(file);
+            })
+        });
+    }
 
     const mkdirAsync = (folder) => {
         return new Promise(function(resolve, reject) {
@@ -723,28 +713,46 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
             });
     }
 
-    getMaxPosition(galleryId)
-        .then(position => {
-            return Promise.all(files.map(processFile))
-                .then(photoData => {
-                    const photos = photoData.map((p) => {
-                        p.gallery = { 'id': DB.objectId(galleryId), 'pos': ++position };
-                        return p;
-                    });
-                    console.log(photos);
-                    /* Save the photos to the database */
-                    return Promise.all(photos.map(savePhoto))
-                        .then((photos) => {
-                            /* Delete the temporary upload files */
-                            return Promise.all(files.map((f) => unlinkAsync(f.path)))
-                                .then(() => {
-                                    console.log('returning data', DB.toResponse(photos));
-                                    return res.json({'photos': DB.toResponse(photos)});
+    Promise.all(files.map(validateFile))
+        .then(validationResults => {
+            let hasError = false;
+            const errorFiles = [];
+            const validFiles = validationResults.filter(f => {
+                if (!f.isValid) {
+                    hasError = true;
+                    errorFiles.push(f);
+                }
+                return f.isValid;
+            });
+            getMaxPosition(galleryId)
+                .then(position => {
+                    return Promise.all(validFiles.map(processFile))
+                        .then(photoData => {
+                            const photos = photoData.map((p) => {
+                                p.gallery = { 'id': DB.objectId(galleryId), 'pos': ++position };
+                                return p;
+                            });
+                            console.log(photos);
+                            /* Save the photos to the database */
+                            return Promise.all(photos.map(savePhoto))
+                                .then((photos) => {
+                                    /* Delete the temporary upload files */
+                                    return Promise.all(files.map((f) => unlinkAsync(f.path)))
+                                        .then(() => {
+                                            const returnObject = {};
+                                            if (hasError) {
+                                                const errorFileNames = errorFiles.map(f => f.originalname);
+                                                returnObject.error = { errorFiles: errorFileNames };
+                                            }
+                                            returnObject.photos = DB.toResponse(photos);
+                                            console.log('returning data', returnObject);
+                                            return res.json(returnObject);
+                                        });
                                 });
+                        })
+                        .catch(err => {
+                            return res.json({'err': err});
                         });
-                })
-                .catch(err => {
-                    return res.json({'err': err});
                 });
         });
 
@@ -780,9 +788,32 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
 
 });
 
-app.put('/api/photos/:id', urlEncodedParser, function(req, res) {
+/*
+    POST /api/photos/:id
+    Update an existing photo
+*/
+app.post('/api/photos/:id', urlEncodedParser, function(req, res) {
 
     const photoId = req.params.id;
+
+    let setParams = {};
+
+    if (!_.isUndefined(req.body.caption)) {
+        setParams.caption = req.body.caption;
+    }
+
+    DB.connect(function (err, db) {
+        if (err) return res.json({'err': err});
+        db.collection('photos').updateOne({
+            '_id': DB.objectId(photoId)
+        }, {
+            '$set': setParams
+        }, function (err, result) {
+            if (err) return res.json({ 'err': err });
+            return res.json({ 'success': true });
+        });
+    });
+
 });
 
 /*
@@ -950,7 +981,7 @@ function fetchInitialState (renderProps, cb) {
                 });
         },
         function (cb) {
-            if (renderProps.location.pathname = '/photos') {
+            if (renderProps.location.pathname == '/photos') {
                 getAllPhotos()
                     .then(photos => {
                         if (photos === null) {

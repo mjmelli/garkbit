@@ -35,6 +35,9 @@ var PhotoSwipeUI_Default =
 		_shareButton,
 		_shareModal,
 		_shareModalHidden = true,
+		_exifButton,
+		_exifModal,
+		_exifModalHidden = true,
 		_initalCloseOnScrollValue,
 		_isIdle,
 		_listen,
@@ -67,6 +70,7 @@ var PhotoSwipeUI_Default =
 			fullscreenEl: true,
 			zoomEl: true,
 			shareEl: true,
+			exifEl: true,
 			counterEl: true,
 			arrowEl: true,
 			preloaderEl: true,
@@ -173,7 +177,6 @@ var PhotoSwipeUI_Default =
 
 			_shareModalHidden = !_shareModalHidden;
 
-
 			if(!_shareModalHidden) {
 				_toggleShareModalClass();
 				setTimeout(function() {
@@ -194,6 +197,57 @@ var PhotoSwipeUI_Default =
 				_updateShareURLs();
 			}
 			return false;
+		},
+		_toggleExifModalClass = function() {
+			_togglePswpClass(_exifModal, 'exif-modal--hidden', _exifModalHidden);
+		},
+		_toggleExifModal = function() {
+
+			_exifModalHidden = !_exifModalHidden;
+
+			if(!_exifModalHidden) {
+				_toggleExifModalClass();
+				setTimeout(function() {
+					if(!_exifModalHidden) {
+						framework.addClass(_exifModal, 'pswp__exif-modal--fade-in');
+					}
+				}, 30);
+			} else {
+				framework.removeClass(_exifModal, 'pswp__exif-modal--fade-in');
+				setTimeout(function() {
+					if(_exifModalHidden) {
+						_toggleExifModalClass();
+					}
+				}, 300);
+			}
+
+			if(!_exifModalHidden) {
+				_updateExifData();
+			}
+			return false;
+		},
+
+		_updateExifData = function() {
+			if (pswp.currItem.exif.exif) {
+				var exif = pswp.currItem.exif;
+				var exposure;
+				if (exif.exif.ExposureTime < 1) {
+					exposure = (1 / exif.exif.ExposureTime)
+					exposure = '1/' + Math.round(exposure);
+				} else {
+					exposure = Math.round(exif.exif.ExposureTime);
+				}
+				var _exifEl = '<ul>';
+				_exifEl += exif.image.Make ? '<li><strong>Camera:</strong> ' + exif.image.Make + ' ' + exif.image.Model + '</li>' : '';
+				_exifEl += exif.exif.ExposureTime ? '<li><strong>Exposure:</strong> ' + exposure + ' sec.</li>': '';
+				_exifEl += exif.exif.FNumber ? '<li><strong>Aperture:</strong> f/' + exif.exif.FNumber + '</li>' : '';
+				_exifEl += exif.exif.ISO ? '<li><strong>ISO:</strong> ' + exif.exif.ISO + '</li>' : '';
+				_exifEl += exif.exif.LensModel ? '<li><strong>Lens:</strong> ' + exif.exif.LensModel + '</li>' : '';
+				_exifEl += '</ul>';
+			} else {
+				var _exifEl = '';
+			}
+			_exifModal.children[0].innerHTML = _exifEl;
 		},
 
 		_openWindowPopup = function(e) {
@@ -426,6 +480,16 @@ var PhotoSwipeUI_Default =
 			}
 		},
 		{
+			name: 'exif-modal',
+			option: 'exifEl',
+			onInit: function(el) {
+				_exifModal = el;
+			},
+			onTap: function() {
+				_toggleExifModal();
+			}
+		},
+		{
 			name: 'share-modal',
 			option: 'shareEl',
 			onInit: function(el) {
@@ -433,6 +497,16 @@ var PhotoSwipeUI_Default =
 			},
 			onTap: function() {
 				_toggleShareModal();
+			}
+		},
+		{
+			name: 'button--exif',
+			option: 'exifEl',
+			onInit: function(el) {
+				_exifButton = el;
+			},
+			onTap: function() {
+				_toggleExifModal();
 			}
 		},
 		{
@@ -598,6 +672,10 @@ var PhotoSwipeUI_Default =
 				_toggleShareModal();
 			}
 
+			if(!_exifModalHidden) {
+				_toggleExifModal();
+			}
+
 			if(_idleInterval) {
 				clearInterval(_idleInterval);
 			}
@@ -690,6 +768,17 @@ var PhotoSwipeUI_Default =
 
 		if(!_shareModalHidden) {
 			_toggleShareModal();
+		}
+
+		if(!_exifModalHidden) {
+			_toggleExifModal();
+		}
+
+		// Hide Exif button if no viable exif data
+		if (!pswp.currItem.exif.exif) {
+			framework.addClass(_exifButton, 'pswp__element--disabled');
+		} else {
+			framework.removeClass(_exifButton, 'pswp__element--disabled');
 		}
 
 		_countNumItems();

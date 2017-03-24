@@ -7,7 +7,7 @@ import { Button, Modal, Glyphicon, ButtonToolbar, Dropdown, MenuItem } from 'rea
 import { DragSource, DropTarget } from 'react-dnd';
 import Thumbnail from '../../Thumbnail/thumbnail';
 import Confirm from '../../Confirm/confirm';
-import { sortPhoto, movePhoto, deletePhoto, togglePhotoSelect } from '../../../modules/Photos/photosactions';
+import { sortPhoto, movePhoto, deletePhoto, removePhotoFromGallery, togglePhotoSelect } from '../../../modules/Photos/photosactions';
 import { toggleCannotSortDialog } from '../photogridactions';
 
 const ItemTypes = {
@@ -29,7 +29,7 @@ const photoSource = {
         const didDrop = monitor.didDrop();
         const dropResult = monitor.getDropResult();
 
-        if (didDrop && !_.isUndefined(dropResult.target) && dropResult.target.type === 'photo') {
+        if (didDrop && dropResult.target && dropResult.target.type === 'photo') {
             if (props.i === originalIndex) {
                 return;
             }
@@ -111,7 +111,7 @@ function collectPhotoTarget(connect, monitor) {
 class GridThumbnail extends React.Component {
     constructor (props) {
         super(props);
-        this.state = { 'showMenu': false, 'showRemoveConfirm': false };
+        this.state = { 'showMenu': false, 'showRemoveConfirm': false, 'showDeleteConfirm': false };
     }
 
     componentWillReceiveProps (nextProps) {
@@ -120,17 +120,19 @@ class GridThumbnail extends React.Component {
         }
     }
 
+    handleRemove = (e) => {
+        this.props.removePhotoFromGallery(this.props.galleryId, this.props.photo.id);
+    }
+
     handleDelete = (e) => {
         this.props.deletePhoto(this.props.photo.id);
     }
 
+    handleEditDetails = (e) => {
+        this.props.onOpenDetailView(this.props.photo);
+    }
+
     toggleSelect = (e) => {
-        /*
-        console.log(e.target.parentNode, e.currentTarget);
-        if (e.target !== e.currentTarget && e.target.parentNode !== e.currentTarget && e.target.parentNode.parentNode !== e.currentTarget) {
-            return false;
-        }
-        */
         this.props.togglePhotoSelect(this.props.photo.id);
     }
 
@@ -143,27 +145,36 @@ class GridThumbnail extends React.Component {
     }
 
     toggleRemoveConfirm = (e) => {
-        if (!this.state.showRemoveConfirm) {
-            this.setState({ 'showRemoveConfirm': true });
-        } else {
-            this.setState({ 'showRemoveConfirm': false });
-        }
+        this.setState({ 'showRemoveConfirm': !this.state.showRemoveConfirm });
+    }
+
+    toggleDeleteConfirm = (e) => {
+        this.setState({ 'showDeleteConfirm': !this.state.showDeleteConfirm });
     }
 
     render() {
-        const { galleryId, photo, i, connectDragSource, connectDropTarget, isDragging, isOver, canDrop } = this.props;
+        const { galleryId, isGallerySet, photo, i, connectDragSource, connectDropTarget, isDragging, isOver, canDrop } = this.props;
 
         return connectDragSource(connectDropTarget(
             <div className={css(styles.photo)} onMouseEnter={this.showMenu} onMouseLeave={this.hideMenu}>
                 <Thumbnail photo={photo} isDragging={isDragging} canDrop={canDrop} onImageClick={this.toggleSelect} />
                 <Confirm
                     show={this.state.showRemoveConfirm}
-                    onConfirm={this.handleDelete}
+                    onConfirm={this.handleRemove}
                     onCancel={this.toggleRemoveConfirm}
                     showActionButton={false}
                     body="Are you sure you want to remove this photo from this gallery?"
                     confirmText="Remove"
                     title="Remove Photo from Gallery">
+                </Confirm>
+                <Confirm
+                    show={this.state.showDeleteConfirm}
+                    onConfirm={this.handleDelete}
+                    onCancel={this.toggleDeleteConfirm}
+                    showActionButton={false}
+                    body="Are you sure you want to delete this photo? This cannot be undone."
+                    confirmText="Delete"
+                    title="Delete Photo">
                 </Confirm>
                 {this.state.showMenu &&
                     <div className={css(styles.photoMenu)}>
@@ -173,7 +184,11 @@ class GridThumbnail extends React.Component {
                                     <Glyphicon glyph="tasks" />
                                 </Dropdown.Toggle>
                                 <Dropdown.Menu>
-                                    <MenuItem eventKey="1"><span onClick={this.toggleRemoveConfirm}>Remove from Gallery</span></MenuItem>
+                                    <MenuItem eventKey="1" onSelect={this.handleEditDetails}>Edit Photo Details</MenuItem>
+                                    {galleryId && !isGallerySet &&
+                                        <MenuItem eventKey="2" onSelect={this.toggleRemoveConfirm}>Remove from Gallery</MenuItem>
+                                    }
+                                    <MenuItem eventKey="3" onSelect={this.toggleDeleteConfirm}>Delete Photo</MenuItem>
                                 </Dropdown.Menu>
                             </Dropdown>
                         </ButtonToolbar>
@@ -194,6 +209,7 @@ GridThumbnail.propTypes = {
     isOver: PropTypes.bool.isRequired,
     canDrop: PropTypes.bool.isRequired,
     canSort: PropTypes.bool.isRequired,
+    onOpenDetailView: PropTypes.func.isRequired,
 }
 
 GridThumbnail = DragSource(ItemTypes.PHOTO, photoSource, collectPhotoSource)(GridThumbnail);
@@ -201,7 +217,7 @@ GridThumbnail = DropTarget(ItemTypes.PHOTO, photoTarget, collectPhotoTarget)(Gri
 
 GridThumbnail = connect(
     (state, ownProps) => ownProps,
-    { deletePhoto, togglePhotoSelect, movePhoto, sortPhoto, toggleCannotSortDialog }
+    { deletePhoto, removePhotoFromGallery, togglePhotoSelect, movePhoto, sortPhoto, toggleCannotSortDialog }
 )(GridThumbnail);
 
 export default GridThumbnail;

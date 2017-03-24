@@ -18,7 +18,9 @@ export const photos = (state = [], action) => {
             newState = [...state, ...newPhotos];
             return newState;
         case 'UPDATE_PHOTO': {
-
+            index = _.findIndex(state, { id: action.id });
+            newState = update(state, { [index]: { title: { $set: action.title }, caption: { $set: action.caption }}});
+            return newState;
         }
         case 'DELETE_PHOTO': {
             index = _.findIndex(state, {id: action.id});
@@ -47,6 +49,12 @@ export const photos = (state = [], action) => {
         }
         case 'MOVE_PHOTO_TO_GALLERY': {
             return state;
+        }
+        case 'UNLOAD_GALLERY': {
+            return newState;
+        }
+        case 'UNLOAD_PHOTOS': {
+            return newState;
         }
         default:
             return state;

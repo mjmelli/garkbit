@@ -8,9 +8,9 @@
   <meta name="description" content="Garkbit">
   <meta name="author" content="MJM">
 
-  <link rel="stylesheet" href="/styles/main.css">
   <link rel="stylesheet" href="/js/photoswipe/photoswipe.css">
-  <link rel="stylesheet" href="/js/photoswipe/default-skin/default-skin.css">
+  <link rel="stylesheet" href="/js/photoswipe/garkbit-skin/garkbit-skin.css">
+  <link rel="stylesheet" href="/styles/main.css">
 
   <!--[if lt IE 9]>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
@@ -19,13 +19,13 @@
 
 <body>
 
-    <div class="gb_inline-gallery clear" id="gb-58aca5e27207fd0c08f63d69"></div>
+    <div class="garkbit" id="gb_58bf200bf86be915b2644b40"></div>
 
     <p>
         This is a bunch of other content
     </p>
 
-    <div class="gb_inline-gallery clear" id="gb-58acb247cda1500d75819311"></div>
+    <div class="garkbit" id="gb_58cb05f735a8851bac367bf4"></div>
 
     <!-- Root element of PhotoSwipe. Must have class pswp. -->
     <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
@@ -51,8 +51,10 @@
                     <div class="pswp__counter"></div>
                     <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
                     <button class="pswp__button pswp__button--share" title="Share"></button>
+                    <button class="pswp__button pswp__button--exif" title="View EXIF data"></button>
                     <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
                     <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
 
                     <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
                     <!-- element will get class pswp__preloader--active when preloader is running -->
@@ -69,6 +71,10 @@
                     <div class="pswp__share-tooltip"></div>
                 </div>
 
+                <div class="pswp__exif-modal pswp__exif-modal--hidden pswp__single-tap">
+                    <div class="pswp__exif-tooltip"></div>
+                </div>
+
                 <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
                 </button>
 
@@ -83,7 +89,7 @@
     </div>
 
     <script src="/js/photoswipe/photoswipe.min.js"></script>
-    <script src="/js/photoswipe/photoswipe-ui-default.min.js"></script>
+    <script src="/js/photoswipe-ui-garkbit.js"></script>
     <script src="/js/front.js"></script>
 </body>
 </html>
