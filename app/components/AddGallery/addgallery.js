@@ -2,7 +2,7 @@ import _ from 'lodash';
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Button, Modal, Form, FormControl, FormGroup, ControlLabel, Row, Col } from 'react-bootstrap';
-import { addGallery } from '../../modules/galleries/galleriesactions.js';
+import { addGallery } from '../../modules/Galleries/galleriesactions.js';
 
 class AddGallery extends React.Component {
     constructor () {

@@ -6,7 +6,7 @@ import { StyleSheet, css } from 'aphrodite';
 import { Button, Modal, Glyphicon } from 'react-bootstrap';
 import { DropTarget } from 'react-dnd';
 import Confirm from '../../Confirm/confirm';
-import { updateGallery, deleteGallery, addPhotoToGallery } from '../../../modules/galleries/galleriesactions.js';
+import { updateGallery, deleteGallery, addPhotoToGallery } from '../../../modules/Galleries/galleriesactions.js';
 
 const ItemTypes = {
     PHOTO: 'photo'
