@@ -23,7 +23,7 @@ var _reactRedux = require('react-redux');
 
 var _reactBootstrap = require('react-bootstrap');
 
-var _galleriesactions = require('../../modules/galleries/galleriesactions.js');
+var _galleriesactions = require('../../modules/Galleries/galleriesactions.js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -209,7 +209,7 @@ AddGallery = (0, _reactRedux.connect)(function (state, ownProps) {
 
 exports.default = AddGallery;
 
-},{"../../modules/galleries/galleriesactions.js":31,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-redux":576}],2:[function(require,module,exports){
+},{"../../modules/Galleries/galleriesactions.js":26,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-redux":576}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -920,7 +920,7 @@ var _confirm = require('../../Confirm/confirm');
 
 var _confirm2 = _interopRequireDefault(_confirm);
 
-var _galleriesactions = require('../../../modules/galleries/galleriesactions.js');
+var _galleriesactions = require('../../../modules/Galleries/galleriesactions.js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1126,7 +1126,7 @@ var styles = _aphrodite.StyleSheet.create({
     }
 });
 
-},{"../../../modules/galleries/galleriesactions.js":31,"../../Confirm/confirm":5,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-dnd":539,"react-redux":576,"react-router":615}],10:[function(require,module,exports){
+},{"../../../modules/Galleries/galleriesactions.js":26,"../../Confirm/confirm":5,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-dnd":539,"react-redux":576,"react-router":615}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1373,7 +1373,7 @@ var styles = _aphrodite.StyleSheet.create({
     }
 });
 
-},{"../../../modules/Gallery/galleryactions.js":27,"../../Confirm/confirm":5,"aphrodite":39,"livereactload/babel-transform":256,"react":784,"react-bootstrap":505,"react-redux":576}],12:[function(require,module,exports){
+},{"../../../modules/Gallery/galleryactions.js":28,"../../Confirm/confirm":5,"aphrodite":39,"livereactload/babel-transform":256,"react":784,"react-bootstrap":505,"react-redux":576}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1770,7 +1770,7 @@ var styles = _aphrodite.StyleSheet.create({
     }
 });
 
-},{"../../modules/Gallery/galleryactions":27,"../../modules/Photos/photosactions":29,"../AddPhoto/addphoto":2,"../PhotoGrid/photogrid":19,"./GalleryHeader/galleryheader":11,"./GallerySortSelect/gallerysortselect":12,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-redux":576}],15:[function(require,module,exports){
+},{"../../modules/Gallery/galleryactions":28,"../../modules/Photos/photosactions":30,"../AddPhoto/addphoto":2,"../PhotoGrid/photogrid":19,"./GalleryHeader/galleryheader":11,"./GallerySortSelect/gallerysortselect":12,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-redux":576}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2391,7 +2391,7 @@ var styles = _aphrodite.StyleSheet.create({
     photoDeleteButton: {}
 });
 
-},{"../../../modules/Photos/photosactions":29,"../../Confirm/confirm":5,"../../Thumbnail/thumbnail":23,"../photogridactions":20,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-dnd":539,"react-dom":548,"react-redux":576}],19:[function(require,module,exports){
+},{"../../../modules/Photos/photosactions":30,"../../Confirm/confirm":5,"../../Thumbnail/thumbnail":23,"../photogridactions":20,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-dnd":539,"react-dom":548,"react-redux":576}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2695,7 +2695,7 @@ var styles = _aphrodite.StyleSheet.create({
     }
 });
 
-},{"../../modules/Photos/photosactions":29,"../Confirm/confirm":5,"../PhotoDetailView/photodetailview":15,"./GridThumbnail/gridthumbnail":18,"./photogridactions":20,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-redux":576}],20:[function(require,module,exports){
+},{"../../modules/Photos/photosactions":30,"../Confirm/confirm":5,"../PhotoDetailView/photodetailview":15,"./GridThumbnail/gridthumbnail":18,"./photogridactions":20,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-bootstrap":505,"react-redux":576}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -2893,7 +2893,7 @@ var styles = _aphrodite.StyleSheet.create({
     }
 });
 
-},{"../../modules/Photos/photosactions":29,"../PhotoGrid/photogrid":19,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-redux":576}],23:[function(require,module,exports){
+},{"../../modules/Photos/photosactions":30,"../PhotoGrid/photogrid":19,"aphrodite":39,"livereactload/babel-transform":256,"lodash":406,"react":784,"react-redux":576}],23:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3127,6 +3127,119 @@ exports.default = (0, _reactDnd.DragDropContext)(_reactDndHtml5Backend2.default)
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.addPhotoToGallery = exports.deleteGallery = exports.updateGallery = exports.addGallery = undefined;
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _config = require('../../../config');
+
+var _config2 = _interopRequireDefault(_config);
+
+var _isomorphicFetch = require('isomorphic-fetch');
+
+var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/*
+    THUNKS
+*/
+
+var addGallery = exports.addGallery = function addGallery(name, parentId, isSet) {
+    return function (dispatch) {
+        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries', {
+            method: 'POST',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
+            body: 'name=' + name + '&parentId=' + parentId + '&isSet=' + isSet
+        }).then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            return dispatch(didAddGallery(json.gallery));
+        }).catch(function (e) {
+            console.log('--Add Gallery--');
+            console.log(e);
+        });
+    };
+};
+
+var updateGallery = exports.updateGallery = function updateGallery(id, name, parentId) {
+    return function (dispatch) {
+        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries/' + id, {
+            method: 'POST',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
+            body: 'name=' + name
+        }).then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            return dispatch(didUpdateGallery(id, name, parentId));
+        }).catch(function (e) {
+            console.log('--Update Gallery--');
+            console.log(e);
+        });
+    };
+};
+
+var deleteGallery = exports.deleteGallery = function deleteGallery(id, parentId) {
+    return function (dispatch) {
+        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries/' + id, {
+            method: 'DELETE',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" }
+        }).then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            return dispatch(didDeleteGallery(id, parentId));
+        }).catch(function (e) {
+            console.log('--Delete Gallery--');
+            console.log(e);
+        });
+    };
+};
+
+/*
+    Note: in this function, it's important to remove the photo from the old gallery
+    before adding to the new gallery in order to preserve parent/child consistency
+*/
+var addPhotoToGallery = exports.addPhotoToGallery = function addPhotoToGallery(photoId, galleryId) {
+    return function (dispatch) {
+        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries/' + galleryId + '/photo/' + photoId, {
+            method: 'PUT',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" }
+        }).then(function (response) {
+            return response.json();
+        }).then(function (json) {
+            return dispatch(didAddPhotoToGallery(photoId, galleryId));
+        }).catch(function (e) {
+            console.log('--Add Photo to Gallery--');
+            console.log(e);
+        });
+    };
+};
+
+/*
+    ACTION CREATORS
+*/
+
+var didAddGallery = function didAddGallery(gallery) {
+    return { type: 'ADD_GALLERY', gallery: gallery };
+};
+var didUpdateGallery = function didUpdateGallery(id, name, parentId) {
+    return { type: 'UPDATE_GALLERY', id: id, name: name, parentId: parentId };
+};
+var didDeleteGallery = function didDeleteGallery(id, parentId) {
+    return { type: 'DELETE_GALLERY', id: id, parentId: parentId };
+};
+var didAddPhotoToGallery = function didAddPhotoToGallery(photoId, galleryId) {
+    return { type: 'ADD_PHOTO_TO_GALLERY', photoId: photoId, galleryId: galleryId };
+};
+
+},{"../../../config":36,"isomorphic-fetch":254,"lodash":406}],27:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _lodash = require('lodash');
 
@@ -3193,7 +3306,7 @@ var galleries = function galleries() {
 
 exports.default = galleries;
 
-},{"immutability-helper":238,"lodash":406}],27:[function(require,module,exports){
+},{"immutability-helper":238,"lodash":406}],28:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3288,7 +3401,7 @@ var didDeleteGallery = function didDeleteGallery(id, parentId) {
     return { type: 'DELETE_GALLERY', id: id, parentId: parentId };
 };
 
-},{"../../../config":36,"isomorphic-fetch":254,"react-router":615}],28:[function(require,module,exports){
+},{"../../../config":36,"isomorphic-fetch":254,"react-router":615}],29:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3339,7 +3452,7 @@ var gallery = function gallery() {
 
 exports.default = gallery;
 
-},{"lodash":406}],29:[function(require,module,exports){
+},{"lodash":406}],30:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3500,7 +3613,7 @@ var didMovePhoto = function didMovePhoto(dragIndex, hoverIndex) {
     return { type: 'MOVE_PHOTO', dragIndex: dragIndex, hoverIndex: hoverIndex };
 };
 
-},{"../../../config":36,"isomorphic-fetch":254}],30:[function(require,module,exports){
+},{"../../../config":36,"isomorphic-fetch":254}],31:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3595,120 +3708,7 @@ var photos = exports.photos = function photos() {
 
 exports.default = photos;
 
-},{"immutability-helper":238,"lodash":406}],31:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.addPhotoToGallery = exports.deleteGallery = exports.updateGallery = exports.addGallery = undefined;
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
-var _config = require('../../../config');
-
-var _config2 = _interopRequireDefault(_config);
-
-var _isomorphicFetch = require('isomorphic-fetch');
-
-var _isomorphicFetch2 = _interopRequireDefault(_isomorphicFetch);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/*
-    THUNKS
-*/
-
-var addGallery = exports.addGallery = function addGallery(name, parentId, isSet) {
-    return function (dispatch) {
-        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries', {
-            method: 'POST',
-            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
-            body: 'name=' + name + '&parentId=' + parentId + '&isSet=' + isSet
-        }).then(function (response) {
-            return response.json();
-        }).then(function (json) {
-            return dispatch(didAddGallery(json.gallery));
-        }).catch(function (e) {
-            console.log('--Add Gallery--');
-            console.log(e);
-        });
-    };
-};
-
-var updateGallery = exports.updateGallery = function updateGallery(id, name, parentId) {
-    return function (dispatch) {
-        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries/' + id, {
-            method: 'POST',
-            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
-            body: 'name=' + name
-        }).then(function (response) {
-            return response.json();
-        }).then(function (json) {
-            return dispatch(didUpdateGallery(id, name, parentId));
-        }).catch(function (e) {
-            console.log('--Update Gallery--');
-            console.log(e);
-        });
-    };
-};
-
-var deleteGallery = exports.deleteGallery = function deleteGallery(id, parentId) {
-    return function (dispatch) {
-        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries/' + id, {
-            method: 'DELETE',
-            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" }
-        }).then(function (response) {
-            return response.json();
-        }).then(function (json) {
-            return dispatch(didDeleteGallery(id, parentId));
-        }).catch(function (e) {
-            console.log('--Delete Gallery--');
-            console.log(e);
-        });
-    };
-};
-
-/*
-    Note: in this function, it's important to remove the photo from the old gallery
-    before adding to the new gallery in order to preserve parent/child consistency
-*/
-var addPhotoToGallery = exports.addPhotoToGallery = function addPhotoToGallery(photoId, galleryId) {
-    return function (dispatch) {
-        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/galleries/' + galleryId + '/photo/' + photoId, {
-            method: 'PUT',
-            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" }
-        }).then(function (response) {
-            return response.json();
-        }).then(function (json) {
-            return dispatch(didAddPhotoToGallery(photoId, galleryId));
-        }).catch(function (e) {
-            console.log('--Add Photo to Gallery--');
-            console.log(e);
-        });
-    };
-};
-
-/*
-    ACTION CREATORS
-*/
-
-var didAddGallery = function didAddGallery(gallery) {
-    return { type: 'ADD_GALLERY', gallery: gallery };
-};
-var didUpdateGallery = function didUpdateGallery(id, name, parentId) {
-    return { type: 'UPDATE_GALLERY', id: id, name: name, parentId: parentId };
-};
-var didDeleteGallery = function didDeleteGallery(id, parentId) {
-    return { type: 'DELETE_GALLERY', id: id, parentId: parentId };
-};
-var didAddPhotoToGallery = function didAddPhotoToGallery(photoId, galleryId) {
-    return { type: 'ADD_PHOTO_TO_GALLERY', photoId: photoId, galleryId: galleryId };
-};
-
-},{"../../../config":36,"isomorphic-fetch":254,"lodash":406}],32:[function(require,module,exports){
+},{"immutability-helper":238,"lodash":406}],32:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3759,7 +3759,7 @@ var rootReducer = (0, _redux.combineReducers)({
 
 exports.default = rootReducer;
 
-},{"./components/AddPhoto/addphotoreducers":4,"./components/GalleriesPanel/galleriespanelreducers":8,"./components/PhotoDetailView/photodetailviewreducers":17,"./components/PhotoGrid/photogridreducers":21,"./modules/Galleries/galleriesreducers":26,"./modules/Gallery/galleryreducers":28,"./modules/Photos/photosreducers":30,"redux":791}],33:[function(require,module,exports){
+},{"./components/AddPhoto/addphotoreducers":4,"./components/GalleriesPanel/galleriespanelreducers":8,"./components/PhotoDetailView/photodetailviewreducers":17,"./components/PhotoGrid/photogridreducers":21,"./modules/Galleries/galleriesreducers":27,"./modules/Gallery/galleryreducers":29,"./modules/Photos/photosreducers":31,"redux":791}],33:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -3881,6 +3881,8 @@ var config = {
     API_URL: process.env.GARKBIT_API_URL ? process.env.GARKBIT_API_URL : 'http://127.0.0.1:3000/api',
     COMBINE_GALLERIES: process.env.GARKBIT_COMBINE_GALLERIES ? process.env.GARKBIT_COMBINE_GALLERIES : true
 };
+
+console.log(config);
 
 exports.default = config;
 

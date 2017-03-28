@@ -130,6 +130,14 @@ const getAllPhotos = () => {
     });
 }
 
+/* CORS */
+app.options("/*", function(req, res) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    res.send(200);
+});
+
 /*
     GET /api/photos
     Get all photos
