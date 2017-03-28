@@ -36,13 +36,6 @@ function getSubfolder (filename) {
 
 const storage = Multer.diskStorage({
     destination: function (req, file, cb) {
-        /*
-        let subFolder = getSubfolder(file.originalname);
-        let folder = photoFolder + subFolder;
-        FS.mkdir(folder, function () {
-            return cb(null, folder);
-        });
-        */
         return cb(null, uploadFolder);
     },
     filename: function (req, file, cb) {
@@ -51,32 +44,6 @@ const storage = Multer.diskStorage({
 })
 
 const upload = Multer({ storage: storage });
-
-/*
-const unflattenGalleries = (array, parent, tree) => {
-    tree = typeof tree !== 'undefined' ? tree : [];
-    parent = typeof parent !== 'undefined' ? parent : { id: '' };
-
-    const children = array.filter(function(child) {
-        if (typeof child.parentId === 'object') { child.parentId = child.parentId.toString(); }
-        if (typeof parent.id === 'object') { parent.id = parent.id.toString(); }
-        if (child.parentId === parent.id) return true;
-        if (parent.id === '' && typeof child.parentId === 'undefined') return true;
-        return false;
-    });
-
-    if (!_.isEmpty(children)) {
-        if (parent.id === '') {
-           tree = children;
-        } else {
-           parent.subGalleries = children;
-        }
-        children.forEach(function(child) { unflattenGalleries(array, child) } );
-    }
-
-    return tree;
-}
-*/
 
 /* COMMON FUNCTIONS */
 
@@ -537,7 +504,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
 
     const mkdirAsync = (folder) => {
         return new Promise(function(resolve, reject) {
-            console.log('making directory');
+            //console.log('making directory');
             FS.mkdir(folder, function (err) {
                 if (err) {
                     if (err.code !== 'EEXIST') {
@@ -551,7 +518,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
 
     const unlinkAsync = (file) => {
         return new Promise(function(resolve, reject) {
-            console.log('unlinking file');
+            //console.log('unlinking file');
             FS.unlink(file, function (err) {
                  if (err) {
                      //return reject(err);
@@ -564,7 +531,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
     }
 
     const processOriginalImage = (file, toFilePath) => {
-        console.log('processing original image');
+        //console.log('processing original image');
         const image = Sharp(file);
         return image
             .withMetadata()
@@ -574,7 +541,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
     }
 
     const processMetadata = (file) => {
-        console.log('processing metadata');
+        //console.log('processing metadata');
         const image = Sharp(file);
         return image
             .metadata()
@@ -599,7 +566,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
     }
 
     const processThumbnailImage = (file, toWidth, toHeight, toFilePath) => {
-        console.log('processing thumbnail');
+        //console.log('processing thumbnail');
         const image = Sharp(file);
         return image
             .jpeg({quality: 100})
@@ -609,7 +576,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
     }
 
     const processFile = (file) => {
-        console.log('processing file');
+        //console.log('processing file');
         const filename = file.filename;
         const filenameParts = _.split(filename, '.');
         const rawFilename = filenameParts[0];
@@ -732,7 +699,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
                                 p.gallery = { 'id': DB.objectId(galleryId), 'pos': ++position };
                                 return p;
                             });
-                            console.log(photos);
+                            //console.log(photos);
                             /* Save the photos to the database */
                             return Promise.all(photos.map(savePhoto))
                                 .then((photos) => {
@@ -745,7 +712,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
                                                 returnObject.error = { errorFiles: errorFileNames };
                                             }
                                             returnObject.photos = DB.toResponse(photos);
-                                            console.log('returning data', returnObject);
+                                            //console.log('returning data', returnObject);
                                             return res.json(returnObject);
                                         });
                                 });
@@ -755,37 +722,6 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
                         });
                 });
         });
-
-
-/*
-    getMaxPosition(galleryId)
-        .then(position => {
-            // Put files in new array with position
-            const files = [];
-            _.each(req.files, function (file) {
-                files.push({file: file, pos: position});
-                ++position;
-            });
-            return files;
-        })
-        .then(files => {
-            return Promise.all(files.map(processFile))
-                .then((photos) => {
-                    return Promise.all(photos.map(savePhoto))
-                    .then((photos) => {
-                        return Promise.all(files.map((f) => unlinkAsync(f.file.path)))
-                            .then(() => {
-                                console.log('returning data', DB.toResponse(photos));
-                                return res.json({'photos': DB.toResponse(photos)});
-                            })
-                    })
-                })
-        })
-        .catch(err => {
-            return res.json({'err': err});
-        })
-        */
-
 });
 
 /*
@@ -861,18 +797,6 @@ app.put('/api/galleries/:galleryId/photo/:photoId/sort', urlEncodedParser, funct
     ], function (err, results) {
         const photoPos = results[0];
         const targetPos = results[1];
-
-        /*
-            if photoPos > targetPos,
-                if (direction == after)
-                    targetPos++
-                set pos + 1 for all elements between (inclusive) targetPos and photoPos
-            else
-                if (direction == before)
-                    targetPos--
-                set pos - 1 for all elements between photoPos and (inclusive) targetPos
-            set photo.pos to targetpos
-        */
 
         let newPos = targetPos;
         if (photoPos > newPos) {
@@ -1028,7 +952,6 @@ app.use((req, res) => {
 
             const store = configureStore(state);
 
-            //const content = renderToString(<Provider store={store}><RouterContext {...renderProps} /></Provider>);
             const {content, css} = StyleSheetServer.renderStatic(() => {
                 return renderToString(<Provider store={store}><RouterContext {...renderProps} /></Provider>);
             });

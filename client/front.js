@@ -59,9 +59,14 @@ const openPhotoSwipe = function(photoId, galleryId) {
     const pswpElement = document.querySelectorAll('.pswp')[0];
 
     const galleryItems = [];
-    garkbitGalleries.forEach(function (k, i) {
-        galleryItems.push(...garkbitPhotos[k]);
-    });
+
+    if (Config.COMBINE_GALLERIES) {
+        garkbitGalleries.forEach(function (k, i) {
+            galleryItems.push(...garkbitPhotos[k]);
+        });
+    } else {
+        galleryItems.push(...garkbitPhotos[galleryId]);
+    }
 
     const index = galleryItems.map(function (i) { return i.id; }).indexOf(photoId);
 

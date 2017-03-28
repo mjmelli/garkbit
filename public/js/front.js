@@ -70,9 +70,14 @@ var openPhotoSwipe = function openPhotoSwipe(photoId, galleryId) {
     var pswpElement = document.querySelectorAll('.pswp')[0];
 
     var galleryItems = [];
-    garkbitGalleries.forEach(function (k, i) {
-        galleryItems.push.apply(galleryItems, _toConsumableArray(garkbitPhotos[k]));
-    });
+
+    if (_config2.default.COMBINE_GALLERIES) {
+        garkbitGalleries.forEach(function (k, i) {
+            galleryItems.push.apply(galleryItems, _toConsumableArray(garkbitPhotos[k]));
+        });
+    } else {
+        galleryItems.push.apply(galleryItems, _toConsumableArray(garkbitPhotos[galleryId]));
+    }
 
     var index = galleryItems.map(function (i) {
         return i.id;
@@ -121,7 +126,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var config = {
-    API_URL: 'http://127.0.0.1:3000/api'
+    API_URL: 'http://127.0.0.1:3000/api',
+    COMBINE_GALLERIES: false
 };
 
 exports.default = config;
