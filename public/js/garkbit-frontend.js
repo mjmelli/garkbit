@@ -7,6 +7,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 var config = {
     MONGO_URL: process.env.GARKBIT_MONGO_URL ? process.env.GARKBIT_MONGO_URL : 'mongodb://localhost:27017/garkbit',
+    GARKBIT_URL: process.env.GARKBIT_URL ? process.env.GARKBIT_URL : 'http://127.0.0.1:3000',
     API_URL: process.env.GARKBIT_API_URL ? process.env.GARKBIT_API_URL : 'http://127.0.0.1:3000/api',
     COMBINE_GALLERIES: process.env.GARKBIT_COMBINE_GALLERIES ? process.env.GARKBIT_COMBINE_GALLERIES : true
 };
@@ -51,8 +52,8 @@ var getGalleryPhotos = function getGalleryPhotos(galleryId) {
             garkbitPhotos[galleryId] = photos.map(function (photo) {
                 return {
                     id: galleryId + '-' + photo.id,
-                    src: '/images/photos/' + photo.sizes.original.uri,
-                    msrc: '/images/photos/' + photo.sizes.thumb.uri,
+                    src: _config2.default.GARKBIT_URL + '/images/photos/' + photo.sizes.original.uri,
+                    msrc: _config2.default.GARKBIT_URL + '/images/photos/' + photo.sizes.thumb.uri,
                     w: photo.sizes.original.width,
                     h: photo.sizes.original.height,
                     title: photo.caption,
@@ -67,7 +68,7 @@ var getGalleryPhotos = function getGalleryPhotos(galleryId) {
                 var thumbImageNode = document.createElement("img");
                 thumbImageNode.dataset.id = galleryId + '-' + photo.id;
                 thumbImageNode.className = 'gb_thumbnail';
-                thumbImageNode.src = '/images/photos/' + photo.sizes.thumb.uri;
+                thumbImageNode.src = _config2.default.GARKBIT_URL + '/images/photos/' + photo.sizes.thumb.uri;
                 thumbImageNode.style.width = photo.sizes.thumb.width + 'px';
                 thumbImageNode.style.height = photo.sizes.thumb.height + 'px';
                 thumbImageNode.onclick = onThumbnailsClick;

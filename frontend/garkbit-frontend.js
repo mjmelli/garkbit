@@ -23,8 +23,8 @@ const getGalleryPhotos = (galleryId) => {
             garkbitPhotos[galleryId] = photos.map(function(photo) {
                 return {
                     id: galleryId + '-' + photo.id,
-                    src: '/images/photos/' + photo.sizes.original.uri,
-                    msrc: '/images/photos/' + photo.sizes.thumb.uri,
+                    src: Config.GARKBIT_URL + '/images/photos/' + photo.sizes.original.uri,
+                    msrc: Config.GARKBIT_URL + '/images/photos/' + photo.sizes.thumb.uri,
                     w: photo.sizes.original.width,
                     h: photo.sizes.original.height,
                     title: photo.caption,
@@ -39,7 +39,7 @@ const getGalleryPhotos = (galleryId) => {
                 const thumbImageNode = document.createElement("img");
                 thumbImageNode.dataset.id = galleryId + '-' + photo.id;
                 thumbImageNode.className = 'gb_thumbnail';
-                thumbImageNode.src = '/images/photos/' + photo.sizes.thumb.uri;
+                thumbImageNode.src = Config.GARKBIT_URL + '/images/photos/' + photo.sizes.thumb.uri;
                 thumbImageNode.style.width = photo.sizes.thumb.width + 'px';
                 thumbImageNode.style.height = photo.sizes.thumb.height + 'px';
                 thumbImageNode.onclick = onThumbnailsClick;
