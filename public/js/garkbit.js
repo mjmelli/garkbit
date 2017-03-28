@@ -3882,8 +3882,6 @@ var config = {
     COMBINE_GALLERIES: process.env.GARKBIT_COMBINE_GALLERIES ? process.env.GARKBIT_COMBINE_GALLERIES : true
 };
 
-console.log(config);
-
 exports.default = config;
 
 }).call(this,require('_process'))
