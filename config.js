@@ -1,8 +1,9 @@
 'use strict'
 
 const config = {
-    API_URL: 'http://127.0.0.1:3000/api',
-    COMBINE_GALLERIES: true,
+    MONGO_URL: process.env.GARKBIT_MONGO_URL ? process.env.GARKBIT_MONGO_URL : 'mongodb://localhost:27017/garkbit',
+    API_URL: process.env.GARKBIT_API_URL ? process.env.GARKBIT_API_URL : 'http://127.0.0.1:3000/api',
+    COMBINE_GALLERIES: process.env.GARKBIT_COMBINE_GALLERIES ? process.env.GARKBIT_COMBINE_GALLERIES : true,
 }
 
 export default config;

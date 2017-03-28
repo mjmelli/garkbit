@@ -3870,19 +3870,22 @@ var store = (0, _store2.default)(initialState);
 ), document.getElementById('app'));
 
 },{"../app/routes":33,"../app/store":34,"history/lib/createBrowserHistory":233,"react":784,"react-dom":548,"react-redux":576,"react-router":615,"react-router-redux":582}],36:[function(require,module,exports){
+(function (process){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var config = {
-    API_URL: 'http://127.0.0.1:3000/api',
-    COMBINE_GALLERIES: true
+    MONGO_URL: process.env.GARKBIT_MONGO_URL ? process.env.GARKBIT_MONGO_URL : 'mongodb://localhost:27017/garkbit',
+    API_URL: process.env.GARKBIT_API_URL ? process.env.GARKBIT_API_URL : 'http://127.0.0.1:3000/api',
+    COMBINE_GALLERIES: process.env.GARKBIT_COMBINE_GALLERIES ? process.env.GARKBIT_COMBINE_GALLERIES : true
 };
 
 exports.default = config;
 
-},{}],37:[function(require,module,exports){
+}).call(this,require('_process'))
+},{"_process":802}],37:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
