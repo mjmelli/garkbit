@@ -1,6 +1,19 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var config = {
+    API_URL: 'http://127.0.0.1:3000/api',
+    COMBINE_GALLERIES: true
+};
+
+exports.default = config;
+
+},{}],2:[function(require,module,exports){
+'use strict';
+
 var _config = require('../config');
 
 var _config2 = _interopRequireDefault(_config);
@@ -119,20 +132,7 @@ if (document.readyState !== 'loading') {
     document.addEventListener('DOMContentLoaded', garkbitInit);
 }
 
-},{"../config":2,"isomorphic-fetch":3}],2:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-var config = {
-    API_URL: 'http://127.0.0.1:3000/api',
-    COMBINE_GALLERIES: false
-};
-
-exports.default = config;
-
-},{}],3:[function(require,module,exports){
+},{"../config":1,"isomorphic-fetch":3}],3:[function(require,module,exports){
 // the whatwg-fetch polyfill installs the fetch() function
 // on the global object (window or self)
 //
@@ -594,4 +594,4 @@ module.exports = self.fetch.bind(self);
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}]},{},[1]);
+},{}]},{},[2]);

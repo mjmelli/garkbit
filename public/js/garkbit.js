@@ -3876,7 +3876,8 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var config = {
-    API_URL: 'http://127.0.0.1:3000/api'
+    API_URL: 'http://127.0.0.1:3000/api',
+    COMBINE_GALLERIES: true
 };
 
 exports.default = config;
