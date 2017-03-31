@@ -8,7 +8,12 @@ import Crypto from 'crypto';
 import FS from 'fs';
 import Sharp from 'sharp';
 import Exif from 'exif-reader';
-import mmm, { Magic }  from 'mmmagic';
+import mmm, { Magic } from 'mmmagic';
+import Bcrypt from 'bcryptjs';
+import Passport from 'passport';
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import LocalStrategy from 'passport-local';
+import JWT from 'jsonwebtoken';
 
 import React from 'react';
 import { Provider } from 'react-redux';
@@ -18,6 +23,8 @@ import Routes from './app/routes';
 import configureStore from './app/store';
 
 import { StyleSheetServer } from 'aphrodite';
+
+import Config from './config';
 
 const app = Express();
 
@@ -44,6 +51,57 @@ const storage = Multer.diskStorage({
 })
 
 const upload = Multer({ storage: storage });
+
+const jwtOptions = {
+    // Telling Passport to check authorization headers for JWT
+    jwtFromRequest: ExtractJwt.fromAuthHeader(),
+    // Telling Passport where to find the secret
+    secretOrKey: Config.JWT_SECRET,
+};
+
+/* AUTHENTICATION */
+
+function generateToken(userId) {
+    return JWT.sign({ userId: userId }, Config.JWT_SECRET, {
+        expiresIn: 36400
+    });
+}
+
+const localLogin = new LocalStrategy({ usernameField: 'email' }, function(email, password, done) {
+    DB.connect(function (err, db) {
+        if (err) return reject(err);
+        db.collection('users').findOne({
+            email: email,
+        }, function (err, user) {
+            if (err) return done(err);
+            if (!user) return done(null, false, { error: 'Your login details could not be verified. Please try again.' });
+
+            if (!Bcrypt.compareSync(password, user.password)) {
+                return done(null, false, { error: "Your login details could not be verified. Please try again." });
+            }
+
+            return done(null, DB.toResponse(user));
+        });
+    });
+});
+
+const jwtLogin = new JwtStrategy(jwtOptions, function(payload, done) {
+    DB.connect(function (err, db) {
+        if (err) return reject(err);
+        db.collection('users').findOne({
+            _id: DB.objectId(payload.userId),
+        }, function (err, user) {
+            if (err) return done(err, false);
+            if (user) return done(null, user);
+            return done(null, false);
+        });
+    });
+});
+
+Passport.use(jwtLogin);
+Passport.use(localLogin);
+const requireAuth = Passport.authenticate('jwt', { session: false });
+const requireLogin = Passport.authenticate('local', { session: false });
 
 /* COMMON FUNCTIONS */
 
@@ -133,8 +191,20 @@ const getAllPhotos = () => {
 /* CORS */
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, Access-Control-Allow-Credentials");
+    res.header("Access-Control-Allow-Credentials", "true");
     next();
+});
+
+
+app.post('/api/login', [ urlEncodedParser, requireLogin ], function(req, res) {
+    const userId = req.user.id;
+
+    res.status(200).json({
+        token: 'JWT ' + generateToken(userId),
+        userId: userId
+    });
 });
 
 /*
@@ -157,7 +227,7 @@ app.get('/api/photos', function(req, res) {
     GET /api/galleries
     Get a list of galleries
 */
-app.get('/api/galleries', function(req, res) {
+app.get('/api/galleries', requireAuth, function(req, res) {
 
     getGalleries()
         .then(galleries => {
@@ -172,7 +242,7 @@ app.get('/api/galleries', function(req, res) {
     POST /api/galleries
     Add a new gallery
 */
-app.post('/api/galleries', urlEncodedParser, function(req, res) {
+app.post('/api/galleries', [ urlEncodedParser, requireAuth ], function(req, res) {
 
     const name = req.body.name;
     const parentId = req.body.parentId ? req.body.parentId : null;
@@ -202,7 +272,7 @@ app.post('/api/galleries', urlEncodedParser, function(req, res) {
     POST /api/galleries/:id
     Update an existing gallery
 */
-app.post('/api/galleries/:id', urlEncodedParser, function(req, res) {
+app.post('/api/galleries/:id', [ urlEncodedParser, requireAuth ], function(req, res) {
 
     const galleryId = req.params.id;
 
@@ -244,7 +314,7 @@ app.post('/api/galleries/:id', urlEncodedParser, function(req, res) {
     DELETE /api/galleries/:id
     Delete a gallery
 */
-app.delete('/api/galleries/:id', function(req, res) {
+app.delete('/api/galleries/:id', requireAuth, function(req, res) {
 
     const galleryId = req.params.id;
 
@@ -327,7 +397,7 @@ app.delete('/api/galleries/:id', function(req, res) {
     GET /api/galleries/:id
     Get gallery details
 */
-app.get('/api/galleries/:id', function(req, res) {
+app.get('/api/galleries/:id', requireAuth, function(req, res) {
 
     const galleryId = req.params.id;
 
@@ -426,7 +496,7 @@ app.get('/api/galleries/:id/photos', function(req, res) {
     PUT /api/galleries/:galleryId/photo/:photoId
     Put an existing photo into an existing gallery
 */
-app.put('/api/galleries/:galleryId/photo/:photoId', function(req, res) {
+app.put('/api/galleries/:galleryId/photo/:photoId', requireAuth, function(req, res) {
 
     const galleryId = req.params.galleryId;
     const photoId = req.params.photoId;
@@ -466,7 +536,7 @@ app.put('/api/galleries/:galleryId/photo/:photoId', function(req, res) {
     DELETE /api/galleries/:galleryId/photo/:photoId
     Remove a photo from a gallery
 */
-app.delete('/api/galleries/:galleryId/photo/:photoId', function(req, res) {
+app.delete('/api/galleries/:galleryId/photo/:photoId', requireAuth, function(req, res) {
 
     const galleryId = req.params.galleryId;
     const photoId = req.params.photoId;
@@ -489,7 +559,7 @@ app.delete('/api/galleries/:galleryId/photo/:photoId', function(req, res) {
     POST /api/photos
     Upload a new photo
 */
-app.post('/api/photos', upload.array('photo'), function(req, res) {
+app.post('/api/photos', [ requireAuth, upload.array('photo') ], function(req, res) {
 
     const galleryId = req.body.galleryId;
     const files = req.files;
@@ -735,7 +805,7 @@ app.post('/api/photos', upload.array('photo'), function(req, res) {
     POST /api/photos/:id
     Update an existing photo
 */
-app.post('/api/photos/:id', urlEncodedParser, function(req, res) {
+app.post('/api/photos/:id', [ requireAuth, urlEncodedParser ], function(req, res) {
 
     const photoId = req.params.id;
 
@@ -763,7 +833,7 @@ app.post('/api/photos/:id', urlEncodedParser, function(req, res) {
     PUT /api/galleries/:galleryId/photo/:photoId/sort
     Sort a photo in a gallery
 */
-app.put('/api/galleries/:galleryId/photo/:photoId/sort', urlEncodedParser, function(req, res) {
+app.put('/api/galleries/:galleryId/photo/:photoId/sort', [ requireAuth, urlEncodedParser ], function(req, res) {
 
     const galleryId = req.params.galleryId;
     const photoId = req.params.photoId;
@@ -874,7 +944,7 @@ app.put('/api/galleries/:galleryId/photo/:photoId/sort', urlEncodedParser, funct
     DELETE /api/photos/:id
     Delete a photo
 */
-app.delete('/api/photos/:id', function(req, res) {
+app.delete('/api/photos/:id', requireAuth, function(req, res) {
 
     const photoId = req.params.id;
 

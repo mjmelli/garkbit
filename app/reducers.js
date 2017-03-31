@@ -1,4 +1,6 @@
 import { combineReducers } from 'redux';
+import auth from './modules/Auth/authreducers';
+import error from './modules/Error/errorreducers';
 import gallery from './modules/Gallery/galleryreducers';
 import galleries from './modules/Galleries/galleriesreducers';
 import photos from './modules/Photos/photosreducers';
@@ -8,6 +10,8 @@ import photoDetailView from './components/PhotoDetailView/photodetailviewreducer
 import addPhotoView from './components/AddPhoto/addphotoreducers';
 
 const rootReducer = combineReducers({
+    auth,
+    error,
     gallery,
     galleries,
     photos,
