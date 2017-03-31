@@ -4,12 +4,17 @@ import { connect } from 'react-redux';
 import { StyleSheet, css } from 'aphrodite';
 import { Button, Glyphicon } from 'react-bootstrap';
 import { toggleAddGalleryModal } from './galleriespanelactions';
+import { loadGalleries } from '../../modules/Galleries/galleriesactions';
 import AddGallery from '../AddGallery/addgallery';
 import GalleryList from '../GalleryList/gallerylist';
 
 class GalleriesPanel extends React.Component {
     constructor (props) {
         super(props);
+    }
+
+    componentWillMount = () => {
+        this.props.loadGalleries();
     }
 
     handleButtonClick = (e) => {
@@ -49,7 +54,7 @@ GalleriesPanel = connect(
             galleries: state.galleries
         };
     },
-    {toggleAddGalleryModal}
+    { loadGalleries, toggleAddGalleryModal }
 )(GalleriesPanel);
 
 export default GalleriesPanel;

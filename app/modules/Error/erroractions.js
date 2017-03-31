@@ -11,6 +11,7 @@ export const handleError = (dispatch, error, message) => {
             error: error,
             message: message,
         });
+        console.log(message, e);
     }
 }
 

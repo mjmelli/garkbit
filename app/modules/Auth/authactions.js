@@ -1,18 +1,20 @@
 import Config from '../../../config';
 import Fetch from 'isomorphic-fetch';
-import Cookie from 'react-cookie';
 import { browserHistory } from 'react-router';
+import { canUseDOM } from '../../../lib/utils.js';
 
 export const logoutUser = (dispatch) => {
-    Cookie.remove('token', { path: '/' });
     dispatch(didLogout());
-    //browserHistory.push('/login');
+    if (canUseDOM) {
+        browserHistory.push('/login');
+    }
 }
 
 export const loginUser = (email, password) => {
     return dispatch => {
         return Fetch(Config.API_URL + '/login', {
             method: 'POST',
+            credentials: 'same-origin',
             headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
             body: 'email=' + email + '&password=' + password,
         })
@@ -23,14 +25,12 @@ export const loginUser = (email, password) => {
             return response.json();
         })
         .then(json => {
-            Cookie.save('token', json.token, { path: '/' });
             dispatch(didLogin());
             browserHistory.push('/');
         })
         .catch(function(e) {
+            dispatch({ type: 'LOGIN_ERROR', message: 'There was an error logging in. Please check your username and password.' });
             logoutUser(dispatch);
-            console.log('--User Login--');
-            console.log(e);
         });
     }
 }

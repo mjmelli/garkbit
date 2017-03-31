@@ -1,6 +1,7 @@
+import _ from 'lodash';
 import Config from '../../../config';
 import Fetch from 'isomorphic-fetch';
-import _ from 'lodash';
+import { handleError } from '../../Modules/Error/erroractions';
 
 export const addPhoto = (files, galleryId) => {
     return dispatch => {
@@ -15,9 +16,15 @@ export const addPhoto = (files, galleryId) => {
 
         return Fetch(Config.API_URL + '/photos', {
             method: 'POST',
+            credentials: 'same-origin',
             body: formData,
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw response;
+            }
+            return response.json();
+        })
         .then(json => {
             dispatch(endUpload());
             if (json.error) {
@@ -27,8 +34,7 @@ export const addPhoto = (files, galleryId) => {
             return;
         })
         .catch(function(e) {
-            console.log('--Add Photo--');
-            console.log(e);
+            handleError(dispatch, e, 'Error adding new photo');
         })
     }
 }

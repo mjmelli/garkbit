@@ -13,8 +13,11 @@ import { loadPhotosByGallery } from '../../modules/Photos/photosactions';
 class GalleryView extends React.Component {
     constructor (props, context) {
         super(props, context);
-        this.props.loadGallery(props.params.galleryId);
         this.state = { 'showDropZone': false };
+    }
+
+    componentWillMount() {
+        this.props.loadGallery(this.props.params.galleryId);
     }
 
     componentWillReceiveProps(nextProps) {

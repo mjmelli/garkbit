@@ -14,15 +14,11 @@ import Passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import LocalStrategy from 'passport-local';
 import JWT from 'jsonwebtoken';
+import CookieParser from 'cookie-parser';
 
-import React from 'react';
-import { Provider } from 'react-redux';
-import { renderToString } from 'react-dom/server';
-import { RouterContext, match } from 'react-router';
+import { match } from 'react-router';
 import Routes from './app/routes';
 import configureStore from './app/store';
-
-import { StyleSheetServer } from 'aphrodite';
 
 import Config from './config';
 
@@ -34,6 +30,7 @@ const uploadFolder = 'public/images/uploads/';
 app.use(Express.static('public'));
 app.set('view engine', 'pug');
 app.set('views', './views');
+app.use(CookieParser());
 
 const urlEncodedParser = BodyParser.urlencoded({ extended: false });
 
@@ -52,14 +49,20 @@ const storage = Multer.diskStorage({
 
 const upload = Multer({ storage: storage });
 
-const jwtOptions = {
-    // Telling Passport to check authorization headers for JWT
-    jwtFromRequest: ExtractJwt.fromAuthHeader(),
-    // Telling Passport where to find the secret
-    secretOrKey: Config.JWT_SECRET,
+/* AUTHENTICATION */
+
+const cookieExtractor = (req) => {
+    let token;
+    if (req && req.cookies) {
+        token = req.cookies['token'];
+    }
+    return token;
 };
 
-/* AUTHENTICATION */
+const jwtOptions = {
+    jwtFromRequest: cookieExtractor,
+    secretOrKey: Config.JWT_SECRET,
+};
 
 function generateToken(userId) {
     return JWT.sign({ userId: userId }, Config.JWT_SECRET, {
@@ -201,8 +204,11 @@ app.use(function(req, res, next) {
 app.post('/api/login', [ urlEncodedParser, requireLogin ], function(req, res) {
     const userId = req.user.id;
 
+    const jwt = generateToken(userId);
+    res.cookie('token', jwt, { maxAge: 86400, httpOnly: true });
+
     res.status(200).json({
-        token: 'JWT ' + generateToken(userId),
+        //token: 'JWT ' + generateToken(userId),
         userId: userId
     });
 });
@@ -967,54 +973,6 @@ app.delete('/api/photos/:id', requireAuth, function(req, res) {
     });
 });
 
-function fetchInitialState (renderProps, cb) {
-
-    let data = {};
-
-    Async.parallel([
-        function (cb) {
-            getGalleries()
-                .then((galleries) => {
-                    data.galleries = galleries;
-                    return cb();
-                }).catch(err => {
-                    return cb(err);
-                });
-        },
-        function (cb) {
-            if (renderProps.location.pathname == '/photos') {
-                getAllPhotos()
-                    .then(photos => {
-                        if (photos === null) {
-                            data.photos = [];
-                        } else {
-                            data.photos = DB.toResponse(photos);
-                        }
-                        return cb();
-                    });
-            } else {
-                if (_.isUndefined(renderProps.params.galleryId)) {
-                    return cb();
-                }
-                data.photos = [];
-                DB.connect(function (err, db) {
-                    if (err) return cb(err);
-                    db.collection('photos').find({'galleries.id': DB.objectId(renderProps.params.galleryId)}).toArray(function (err, photos) {
-                        if (err) return cb(err);
-                        data.photos = DB.toResponse(photos);
-                        return cb();
-                    });
-                });
-            }
-        },
-    ], function (err, results) {
-        if (err) return cb(err);
-        return cb(null, data);
-    });
-
-    return;
-}
-
 app.use((req, res) => {
     match({routes: Routes, location: req.url}, (err, redirectLocation, renderProps) => {
         if (err) {
@@ -1024,20 +982,16 @@ app.use((req, res) => {
 
         if (!renderProps) return res.status(404).end('Not found.');
 
-        fetchInitialState(renderProps, function (err, state) {
-            if (err) return res.status(500).end('Internal server error');
+        /* Check cookie to see if user is logged in and make sure client knows about it */
+        let isAuthenticated = false;
+        if (req && req.cookies && req.cookies['token']) {
+            isAuthenticated = true;
+        }
 
-            const store = configureStore(state);
+        const store = configureStore({ auth: { isAuthenticated: isAuthenticated } });
+        const initialState = store.getState();
 
-            const {content, css} = StyleSheetServer.renderStatic(() => {
-                return renderToString(<Provider store={store}><RouterContext {...renderProps} /></Provider>);
-            });
-
-            const initialState = store.getState();
-
-            res.render('index', { content: content, css: css, initialState: initialState });
-        });
-
+        res.render('index', { initialState: initialState });
     });
 });
 

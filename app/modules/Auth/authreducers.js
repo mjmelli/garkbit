@@ -5,7 +5,7 @@ const auth = (state = { error: '', message: '', content: '', isAuthenticated: fa
         case 'LOGOUT_USER':
             return { ...state, isAuthenticated: false };
         case 'LOGIN_ERROR':
-            return { ...state, error: action.payload };
+            return { ...state, error: action.message };
         default:
             return state;
     }

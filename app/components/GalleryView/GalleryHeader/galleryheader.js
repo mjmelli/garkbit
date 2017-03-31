@@ -55,6 +55,7 @@ class GalleryHeader extends React.Component {
             return (
                 <div className={css(styles.galleryHeader) + ' clear'}>
                     <h2 className={css(styles.galleryHeaderTitle)} onClick={this.startEdit}>{this.props.gallery.name}</h2>
+                    <span className={css(styles.editIcon)}><Glyphicon glyph="edit" /></span>
                     <div className={css(styles.galleryHeaderOptions)}>
                         <Confirm
                             onConfirm={this.handleDelete}
@@ -109,5 +110,11 @@ const styles = StyleSheet.create({
         ':focus': {
             outline: 'none',
         }
+    },
+    editIcon: {
+        color: '#dddddd',
+        lineHeight: '32px',
+        verticalAlign: 'bottom',
+        paddingLeft: 5,
     }
 });

@@ -8,7 +8,10 @@ import { loadAllPhotos, unloadPhotos } from '../../modules/Photos/photosactions'
 class PhotosView extends React.Component {
     constructor (props) {
         super(props);
-        props.loadAllPhotos();
+    }
+
+    componentWillMount() {
+        this.props.loadAllPhotos();
     }
 
     componentWillUnmount() {

@@ -17,10 +17,8 @@ html
         meta(name='description', content='garkbit!')
         meta(name='viewport', content='width=device-width, initial-scale=1')
 
-        style(data-aphrodite type="text/css").
-            #{css.content}
     body
-        #app!= content
+        #app
         script(type='text/javascript').
-            window.__INITIAL_STATE__ = !{JSON.stringify(initialState)};
+            window.__INITIAL_STATE__ = !{JSON.stringify(initialState)};        
         script(src='/js/garkbit.js')

@@ -5,6 +5,8 @@ const galleries = (state = [], action) => {
     let newState = [];
     let index = 0;
     switch (action.type) {
+        case 'LOAD_GALLERIES':
+            return action.galleries;
         case 'ADD_GALLERY':
             newState = [...state];
             const newGallery = action.gallery;
