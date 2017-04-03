@@ -6,6 +6,7 @@ import { Grid, Row, Col, Glyphicon } from 'react-bootstrap';
 import HTML5Backend from 'react-dnd-html5-backend';
 import ErrorMessage from './ErrorMessage/errormessage';
 import { clearError } from '../modules/Error/erroractions';
+import { logoutUser } from '../modules/Auth/authactions';
 
 class AppView extends React.Component {
     componentWillMount() {
@@ -14,6 +15,10 @@ class AppView extends React.Component {
 
     componentWillUpdate(nextProps) {
         if (!nextProps.auth.isAuthenticated) this.context.router.push('/login');
+    }
+
+    handleLogout = () => {
+        this.props.logoutUser();
     }
 
     render () {
@@ -25,6 +30,7 @@ class AppView extends React.Component {
                         <Link to={"/"}><img className="logo" src="/images/gb_logo.png" alt="Garkbit"/></Link>
                         <h3><Link to={"/photos"}>All Photos</Link></h3>
                         {sidebar}
+                        <div className="logout"><a href="#" onClick={this.handleLogout}><Glyphicon glyph="log-out" /> Logout</a></div>
                     </Col>
                     <Col sm={9} className="content">
                         <ErrorMessage show={this.props.error.hasError} error={this.props.error} clearError={this.props.clearError} />
@@ -47,7 +53,7 @@ AppView = connect(
             error: state.error,
         };
     },
-    { clearError }
+    { clearError, logoutUser }
 )(AppView);
 
 export default DragDropContext(HTML5Backend)(AppView);

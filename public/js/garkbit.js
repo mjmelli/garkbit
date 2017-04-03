@@ -20,11 +20,33 @@ var _utils = require('../../../lib/utils.js');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var logoutUser = exports.logoutUser = function logoutUser(dispatch) {
+/*
+export const logoutUser = (dispatch) => {
     dispatch(didLogout());
-    if (_utils.canUseDOM) {
-        _reactRouter.browserHistory.push('/login');
+    if (canUseDOM) {
+        browserHistory.push('/login');
     }
+}
+*/
+
+var logoutUser = exports.logoutUser = function logoutUser(dispatch) {
+    return function (dispatch) {
+        return (0, _isomorphicFetch2.default)(_config2.default.API_URL + '/logout', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" }
+        }).then(function (response) {
+            if (!response.ok) {
+                throw response;
+            }
+            return response.json();
+        }).then(function (json) {
+            dispatch(didLogout());
+            _reactRouter.browserHistory.push('/login');
+        }).catch(function (e) {
+            dispatch({ type: 'LOGOUT_ERROR', message: 'There was an error logging out.' });
+        });
+    };
 };
 
 var loginUser = exports.loginUser = function loginUser(email, password) {
@@ -1508,7 +1530,7 @@ var GalleryHeader = _wrapComponent('GalleryHeader')(function (_React$Component) 
                     _react3.default.createElement(
                         'span',
                         { className: (0, _aphrodite.css)(styles.editIcon) },
-                        _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'edit' })
+                        _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'edit', onClick: this.startEdit })
                     ),
                     _react3.default.createElement(
                         'div',
@@ -3437,6 +3459,8 @@ var _errormessage2 = _interopRequireDefault(_errormessage);
 
 var _erroractions = require('../modules/Error/erroractions');
 
+var _authactions = require('../modules/Auth/authactions');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -3468,9 +3492,19 @@ var AppView = _wrapComponent('AppView')(function (_React$Component) {
     _inherits(AppView, _React$Component);
 
     function AppView() {
+        var _ref;
+
+        var _temp, _this, _ret;
+
         _classCallCheck(this, AppView);
 
-        return _possibleConstructorReturn(this, (AppView.__proto__ || Object.getPrototypeOf(AppView)).apply(this, arguments));
+        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+        }
+
+        return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = AppView.__proto__ || Object.getPrototypeOf(AppView)).call.apply(_ref, [this].concat(args))), _this), _this.handleLogout = function () {
+            _this.props.logoutUser();
+        }, _temp), _possibleConstructorReturn(_this, _ret);
     }
 
     _createClass(AppView, [{
@@ -3513,7 +3547,17 @@ var AppView = _wrapComponent('AppView')(function (_React$Component) {
                                 'All Photos'
                             )
                         ),
-                        sidebar
+                        sidebar,
+                        _react3.default.createElement(
+                            'div',
+                            { className: 'logout' },
+                            _react3.default.createElement(
+                                'a',
+                                { href: '#', onClick: this.handleLogout },
+                                _react3.default.createElement(_reactBootstrap.Glyphicon, { glyph: 'log-out' }),
+                                ' Logout'
+                            )
+                        )
                     ),
                     _react3.default.createElement(
                         _reactBootstrap.Col,
@@ -3538,11 +3582,11 @@ AppView = (0, _reactRedux.connect)(function (state) {
         auth: state.auth,
         error: state.error
     };
-}, { clearError: _erroractions.clearError })(AppView);
+}, { clearError: _erroractions.clearError, logoutUser: _authactions.logoutUser })(AppView);
 
 exports.default = (0, _reactDnd.DragDropContext)(_reactDndHtml5Backend2.default)(AppView);
 
-},{"../modules/Error/erroractions":32,"./ErrorMessage/errormessage":8,"livereactload/babel-transform":264,"react":792,"react-bootstrap":513,"react-dnd":547,"react-dnd-html5-backend":533,"react-redux":584,"react-router":623}],30:[function(require,module,exports){
+},{"../modules/Auth/authactions":30,"../modules/Error/erroractions":32,"./ErrorMessage/errormessage":8,"livereactload/babel-transform":264,"react":792,"react-bootstrap":513,"react-dnd":547,"react-dnd-html5-backend":533,"react-redux":584,"react-router":623}],30:[function(require,module,exports){
 arguments[4][1][0].apply(exports,arguments)
 },{"../../../config":44,"../../../lib/utils.js":45,"dup":1,"isomorphic-fetch":262,"react-router":623}],31:[function(require,module,exports){
 'use strict';

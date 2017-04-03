@@ -55,7 +55,7 @@ class GalleryHeader extends React.Component {
             return (
                 <div className={css(styles.galleryHeader) + ' clear'}>
                     <h2 className={css(styles.galleryHeaderTitle)} onClick={this.startEdit}>{this.props.gallery.name}</h2>
-                    <span className={css(styles.editIcon)}><Glyphicon glyph="edit" /></span>
+                    <span className={css(styles.editIcon)}><Glyphicon glyph="edit" onClick={this.startEdit}/></span>
                     <div className={css(styles.galleryHeaderOptions)}>
                         <Confirm
                             onConfirm={this.handleDelete}

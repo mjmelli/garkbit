@@ -200,17 +200,28 @@ app.use(function(req, res, next) {
     next();
 });
 
-
+/*
+    POST /api/login
+    Login a user and set a cookie with a json web token
+*/
 app.post('/api/login', [ urlEncodedParser, requireLogin ], function(req, res) {
     const userId = req.user.id;
 
     const jwt = generateToken(userId);
-    res.cookie('token', jwt, { maxAge: 86400, httpOnly: true });
+    res.cookie('token', jwt, { maxAge: 86400 * 1000, httpOnly: true }); // one day expiration
 
     res.status(200).json({
-        //token: 'JWT ' + generateToken(userId),
         userId: userId
     });
+});
+
+/*
+    POST /api/logout
+    Logout a user and remove the cookie
+*/
+app.post('/api/logout', requireAuth, function(req, res) {
+    res.cookie('token', '', { expires: new Date(0) });
+    res.json({ 'success': true });
 });
 
 /*
